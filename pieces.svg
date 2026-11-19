@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 100" aria-hidden="true">
+  <defs>
+    <g id="base-white" fill="#f8f4e9" stroke="#394454" stroke-width="3.2" stroke-linejoin="round">
+      <path d="M18 85 Q50 77 82 85 L87 94 Q50 100 13 94 Z"/>
+      <path d="M25 78 Q50 70 75 78 L82 85 Q50 92 18 85 Z"/>
+    </g>
+    <g id="base-black" fill="#26313e" stroke="#f2eadb" stroke-width="3.2" stroke-linejoin="round">
+      <path d="M18 85 Q50 77 82 85 L87 94 Q50 100 13 94 Z"/>
+      <path d="M25 78 Q50 70 75 78 L82 85 Q50 92 18 85 Z"/>
+    </g>
+  </defs>
+  <symbol id="wp" viewBox="0 0 100 100">
+    <use href="#base-white"/>
+    <path d="M31 76 Q39 68 40 59 Q32 52 35 42 Q39 30 50 30 Q61 30 65 42 Q68 52 60 59 Q61 68 69 76 Z" fill="#f8f4e9" stroke="#394454" stroke-width="3.2" stroke-linejoin="round"/>
+    <circle cx="50" cy="19" r="12" fill="#f8f4e9" stroke="#394454" stroke-width="3.2"/>
+  </symbol>
+  <symbol id="wn" viewBox="0 0 100 100">
+    <use href="#base-white"/>
+    <path d="M24 76 Q28 64 20 54 L26 43 Q31 36 36 29 L32 15 Q47 18 54 28 Q66 28 72 39 L69 53 Q76 58 79 76 Z" fill="#f8f4e9" stroke="#394454" stroke-width="3.2" stroke-linejoin="round"/>
+    <path d="M35 34 Q43 33 50 39 L43 45 L35 43 Z" fill="#394454"/>
+    <circle cx="58" cy="38" r="3.7" fill="#26313e"/>
+    <path d="M30 57 Q47 52 62 61 L70 76 L28 76 Z" fill="#e2d7c3" stroke="#394454" stroke-width="2.4"/>
+  </symbol>
+  <symbol id="wb" viewBox="0 0 100 100">
+    <use href="#base-white"/>
+    <path d="M30 76 Q37 65 38 53 Q29 43 36 30 Q42 18 50 12 Q58 18 64 30 Q71 43 62 53 Q63 65 70 76 Z" fill="#f8f4e9" stroke="#394454" stroke-width="3.2" stroke-linejoin="round"/>
+    <path d="M50 17 L44 37 L56 48 L47 63" fill="none" stroke="#394454" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="50" cy="15" r="5" fill="#f8f4e9" stroke="#394454" stroke-width="2.5"/>
+  </symbol>
+  <symbol id="wr" viewBox="0 0 100 100">
+    <use href="#base-white"/>
+    <path d="M25 31 L25 19 L36 19 L36 27 L44 27 L44 16 L56 16 L56 27 L64 27 L64 19 L75 19 L75 31 L70 38 L70 76 L30 76 L30 38 Z" fill="#f8f4e9" stroke="#394454" stroke-width="3.2" stroke-linejoin="round"/>
+    <path d="M37 43 L63 43 M37 54 L63 54 M37 65 L63 65" stroke="#394454" stroke-width="2.5"/>
+  </symbol>
+  <symbol id="wq" viewBox="0 0 100 100">
+    <use href="#base-white"/>
+    <path d="M25 76 L30 46 L20 31 L35 38 L42 20 L50 37 L58 20 L65 38 L80 31 L70 46 L75 76 Z" fill="#f8f4e9" stroke="#394454" stroke-width="3.2" stroke-linejoin="round"/>
+    <circle cx="20" cy="27" r="6" fill="#f8f4e9" stroke="#394454" stroke-width="2.6"/>
+    <circle cx="42" cy="16" r="6" fill="#f8f4e9" stroke="#394454" stroke-width="2.6"/>
+    <circle cx="58" cy="16" r="6" fill="#f8f4e9" stroke="#394454" stroke-width="2.6"/>
+    <circle cx="80" cy="27" r="6" fill="#f8f4e9" stroke="#394454" stroke-width="2.6"/>
+    <path d="M35 56 Q50 63 65 56" fill="none" stroke="#394454" stroke-width="2.5"/>
+  </symbol>
+  <symbol id="wk" viewBox="0 0 100 100">
+    <use href="#base-white"/>
+    <path d="M33 76 Q39 63 39 49 L29 39 L40 35 L40 24 L60 24 L60 35 L71 39 L61 49 Q61 63 67 76 Z" fill="#f8f4e9" stroke="#394454" stroke-width="3.2" stroke-linejoin="round"/>
+    <path d="M50 5 L50 29 M39 16 L61 16" stroke="#394454" stroke-width="5" stroke-linecap="round"/>
+    <path d="M40 58 L60 58" stroke="#394454" stroke-width="2.5"/>
+  </symbol>
+
+  <symbol id="bp" viewBox="0 0 100 100">
+    <use href="#base-black"/>
+    <path d="M31 76 Q39 68 40 59 Q32 52 35 42 Q39 30 50 30 Q61 30 65 42 Q68 52 60 59 Q61 68 69 76 Z" fill="#26313e" stroke="#f2eadb" stroke-width="3.2" stroke-linejoin="round"/>
+    <circle cx="50" cy="19" r="12" fill="#26313e" stroke="#f2eadb" stroke-width="3.2"/>
+  </symbol>
+  <symbol id="bn" viewBox="0 0 100 100">
+    <use href="#base-black"/>
+    <path d="M24 76 Q28 64 20 54 L26 43 Q31 36 36 29 L32 15 Q47 18 54 28 Q66 28 72 39 L69 53 Q76 58 79 76 Z" fill="#26313e" stroke="#f2eadb" stroke-width="3.2" stroke-linejoin="round"/>
+    <path d="M35 34 Q43 33 50 39 L43 45 L35 43 Z" fill="#f2eadb"/>
+    <circle cx="58" cy="38" r="3.7" fill="#f2eadb"/>
+    <path d="M30 57 Q47 52 62 61 L70 76 L28 76 Z" fill="#354253" stroke="#f2eadb" stroke-width="2.4"/>
+  </symbol>
+  <symbol id="bb" viewBox="0 0 100 100">
+    <use href="#base-black"/>
+    <path d="M30 76 Q37 65 38 53 Q29 43 36 30 Q42 18 50 12 Q58 18 64 30 Q71 43 62 53 Q63 65 70 76 Z" fill="#26313e" stroke="#f2eadb" stroke-width="3.2" stroke-linejoin="round"/>
+    <path d="M50 17 L44 37 L56 48 L47 63" fill="none" stroke="#f2eadb" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="50" cy="15" r="5" fill="#26313e" stroke="#f2eadb" stroke-width="2.5"/>
+  </symbol>
+  <symbol id="br" viewBox="0 0 100 100">
+    <use href="#base-black"/>
+    <path d="M25 31 L25 19 L36 19 L36 27 L44 27 L44 16 L56 16 L56 27 L64 27 L64 19 L75 19 L75 31 L70 38 L70 76 L30 76 L30 38 Z" fill="#26313e" stroke="#f2eadb" stroke-width="3.2" stroke-linejoin="round"/>
+    <path d="M37 43 L63 43 M37 54 L63 54 M37 65 L63 65" stroke="#f2eadb" stroke-width="2.5"/>
+  </symbol>
+  <symbol id="bq" viewBox="0 0 100 100">
+    <use href="#base-black"/>
+    <path d="M25 76 L30 46 L20 31 L35 38 L42 20 L50 37 L58 20 L65 38 L80 31 L70 46 L75 76 Z" fill="#26313e" stroke="#f2eadb" stroke-width="3.2" stroke-linejoin="round"/>
+    <circle cx="20" cy="27" r="6" fill="#26313e" stroke="#f2eadb" stroke-width="2.6"/>
+    <circle cx="42" cy="16" r="6" fill="#26313e" stroke="#f2eadb" stroke-width="2.6"/>
+    <circle cx="58" cy="16" r="6" fill="#26313e" stroke="#f2eadb" stroke-width="2.6"/>
+    <circle cx="80" cy="27" r="6" fill="#26313e" stroke="#f2eadb" stroke-width="2.6"/>
+    <path d="M35 56 Q50 63 65 56" fill="none" stroke="#f2eadb" stroke-width="2.5"/>
+  </symbol>
+  <symbol id="bk" viewBox="0 0 100 100">
+    <use href="#base-black"/>
+    <path d="M33 76 Q39 63 39 49 L29 39 L40 35 L40 24 L60 24 L60 35 L71 39 L61 49 Q61 63 67 76 Z" fill="#26313e" stroke="#f2eadb" stroke-width="3.2" stroke-linejoin="round"/>
+    <path d="M50 5 L50 29 M39 16 L61 16" stroke="#f2eadb" stroke-width="5" stroke-linecap="round"/>
+    <path d="M40 58 L60 58" stroke="#f2eadb" stroke-width="2.5"/>
+  </symbol>
+</svg>

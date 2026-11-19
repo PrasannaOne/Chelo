@@ -1,14 +1,14 @@
 {
-  "name": "Chessling - Raise a Chess Monster",
+  "name": "Chessling · Raise a Chess Monster",
   "short_name": "Chessling",
-  "description": "An offline-first chess pet that learns as you play.",
+  "description": "Raise a chess pet. Watch it learn through play, offline.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "background_color": "#10131b",
   "theme_color": "#10131b",
-  "orientation": "portrait",
   "icons": [
-    {"src":"./icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
+    {"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
   ]
 }
