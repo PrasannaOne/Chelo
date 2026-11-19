@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#10131b">
+  <meta name="description" content="Raise a little chess creature. Chessling learns as you play, entirely offline.">
+  <title>Chessling | Raise a chess monster</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="Chessling home"><span class="brand-mark">♟</span><span>chessling</span></a>
+      <span class="offline-pill"><i></i> OFFLINE READY</span>
+    </header>
+
+    <section class="intro">
+      <div class="eyebrow">YOUR LITTLE CHESS COMPANION</div>
+      <h1>Raise a <span>chess monster.</span></h1>
+      <p>It starts at 100 Elo. Every move becomes experience.</p>
+    </section>
+
+    <section class="pet-strip" aria-label="Your Chessling">
+      <div class="pet-avatar" id="petAvatar" aria-hidden="true">🐣</div>
+      <div class="pet-main">
+        <div class="pet-name-line"><strong id="petName">Chessling</strong><button class="text-button" id="renameBtn">Rename</button></div>
+        <div class="pet-sub" id="petMood">Clueless hatchling · learning with every move</div>
+        <div class="pet-stats">
+          <div><span>GROWTH ELO</span><b id="eloValue">100</b></div>
+          <div><span>GENERATION</span><b id="genValue">1</b></div>
+          <div><span>W · L · D</span><b id="recordValue">0 · 0 · 0</b></div>
+        </div>
+      </div>
+      <div class="pet-status"><span class="pulse"></span><span id="learningState">Ready</span></div>
+    </section>
+
+    <section class="game-layout">
+      <div class="board-panel">
+        <div class="board-topline"><div><span class="side-dot white-dot"></span><strong>You</strong><span class="muted">· White</span></div><div class="thinking" id="thinkingLabel">YOUR MOVE</div></div>
+        <div class="board-frame"><div class="coordinates files-top" aria-hidden="true"><span>a</span><span>b</span><span>c</span><span>d</span><span>e</span><span>f</span><span>g</span><span>h</span></div><div id="chessboard" class="chessboard" role="grid" aria-label="Chess board"></div></div>
+        <div class="board-bottomline"><div><span class="side-dot black-dot"></span><strong id="opponentName">Chessling</strong><span class="muted">· Black</span></div><div class="turn-state" id="turnState">Your turn</div></div>
+        <div class="game-controls"><button class="btn btn-primary" id="newGameBtn">New game</button><button class="btn btn-secondary" id="undoBtn" disabled>Undo turn</button><button class="btn btn-secondary" id="flipBtn">Flip board</button></div>
+        <div class="game-message" id="gameMessage" aria-live="polite">Choose a piece, then tap a highlighted square.</div>
+      </div>
+
+      <aside class="side-panel">
+        <section class="panel-card brain-card">
+          <div class="panel-heading"><div><span class="eyebrow">INSIDE ITS HEAD</span><h2>Growing brain</h2></div><span class="brain-icon">✳</span></div>
+          <p class="panel-copy">Chessling remembers positions and learns which decisions work.</p>
+          <div class="brain-metrics"><div><span>Remembered positions</span><strong id="memoryCount">0</strong></div><div><span>Brain size</span><strong id="brainSize">0.4 KB <small>/ 50 KB</small></strong></div></div>
+          <div class="budget-track"><div id="budgetFill"></div></div>
+          <div class="budget-caption"><span>Local memory budget</span><span>50 KB max</span></div>
+          <div class="weight-list" id="weightList">
+            <div class="weight-row"><span>♟ Pawn</span><div><i id="weight-p"></i></div><b id="value-p">1.0</b></div>
+            <div class="weight-row"><span>♞ Knight</span><div><i id="weight-n"></i></div><b id="value-n">1.1</b></div>
+            <div class="weight-row"><span>♝ Bishop</span><div><i id="weight-b"></i></div><b id="value-b">1.1</b></div>
+            <div class="weight-row"><span>♜ Rook</span><div><i id="weight-r"></i></div><b id="value-r">1.2</b></div>
+            <div class="weight-row"><span>♛ Queen</span><div><i id="weight-q"></i></div><b id="value-q">1.3</b></div>
+          </div>
+          <div class="learning-note" id="learningNote">Its first memories are being formed.</div>
+        </section>
+        <section class="panel-card history-card">
+          <div class="panel-heading"><div><span class="eyebrow">THIS MATCH</span><h2>Move trail</h2></div><span class="history-count" id="moveCount">0 moves</span></div>
+          <ol id="moveList" class="move-list"><li class="empty-moves">Your first move is waiting.</li></ol>
+        </section>
+        <section class="soul-card">
+          <div><strong>Keep its soul safe.</strong><p>Export its brain, memories and progress as a Soul file.</p></div>
+          <div class="soul-actions"><button class="btn btn-secondary" id="exportBtn">Export Soul</button><button class="btn btn-secondary" id="importBtn">Import Soul</button><input type="file" id="importFile" accept=".json,application/json" hidden></div>
+        </section>
+      </aside>
+    </section>
+    <footer><span>CHESSLING · FIRST PLAYABLE</span><span>Built to learn. Made to grow.</span></footer>
+  </main>
+
+  <dialog id="promotionDialog" class="promotion-dialog"><form method="dialog"><h3>Choose its promotion</h3><p>Your pawn reached the other side.</p><div class="promotion-options"><button value="q">♕</button><button value="r">♖</button><button value="b">♗</button><button value="n">♘</button></div><button class="cancel-promo" value="cancel">Cancel</button></form></dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="chess.js"></script>
+  <script src="brain.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
