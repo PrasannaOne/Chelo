@@ -218,7 +218,7 @@
           svg.setAttribute('class','piece-svg');
           svg.setAttribute('aria-hidden','true');
           const use = document.createElementNS('http://www.w3.org/2000/svg','use');
-          use.setAttribute('href',`pieces.svg#${piece.color}${piece.type}`);
+          use.setAttribute('href',`./assets/pieces.svg#${piece.color}${piece.type}`);
           svg.appendChild(use);
           cell.appendChild(svg);
         }
@@ -367,6 +367,7 @@
     if(data.gen>=2&&data.gen<4) avatar='🐥'; else if(data.gen>=4&&data.gen<8) avatar='🦉'; else if(data.gen>=8) avatar='🐉';
     $('petAvatar').textContent=avatar; $('petName').textContent=data.petName;
     $('petMood').textContent=`${brain.generation()} · ${brain.personality()}`;
+    const personality=$('drawerPersonality');if(personality)personality.textContent=brain.personality();
     $('growthValue').textContent=brain.growthLevel();
     $('masteryValue').textContent=brain.masteryTier();
     $('arenaRankValue').textContent='Unranked';
@@ -501,6 +502,27 @@
       if(!chess.canClaimDraw()||finished||mode!=='human')return;
       finishMatch('draw','Draw claimed. Chelo keeps the experience from this game.');
     });
+    // App-style drawer: tap, Escape, backdrop, and edge swipes all work on touch devices.
+    const drawer=$('sideDrawer'), scrim=$('drawerScrim'), openDrawer=$('drawerOpen');
+    const showDrawer=(panel='home')=>{drawer.classList.add('open');drawer.setAttribute('aria-hidden','false');scrim.hidden=false;openDrawer.setAttribute('aria-expanded','true');selectDrawerPanel(panel);};
+    const hideDrawer=()=>{drawer.classList.remove('open');drawer.setAttribute('aria-hidden','true');scrim.hidden=true;openDrawer.setAttribute('aria-expanded','false');};
+    const selectDrawerPanel=(name)=>{document.querySelectorAll('[data-panel]').forEach(p=>{const active=p.dataset.panel===name;p.hidden=!active;p.classList.toggle('active',active);});document.querySelectorAll('.drawer-tab').forEach(t=>{const active=t.dataset.drawerPanel===name;t.classList.toggle('active',active);t.setAttribute('aria-selected',String(active));});};
+    openDrawer.addEventListener('click',()=>showDrawer('home'));$('drawerClose').addEventListener('click',hideDrawer);scrim.addEventListener('click',hideDrawer);
+    document.querySelectorAll('.drawer-tab').forEach(t=>t.addEventListener('click',()=>selectDrawerPanel(t.dataset.drawerPanel)));
+    $('historyOpen').addEventListener('click',()=>showDrawer('history'));
+    $('drawerNewGame').addEventListener('click',()=>{$('newGameBtn').click();hideDrawer();});
+    $('drawerRename').addEventListener('click',()=>$('renameBtn').click());
+    $('settingsFlip').addEventListener('click',()=>$('flipBtn').click());$('settingsNewGame').addEventListener('click',()=>$('newGameBtn').click());
+    const overflow=$('overflowMenu'), overflowBtn=$('overflowBtn');
+    overflowBtn.addEventListener('click',()=>{overflow.hidden=!overflow.hidden;overflowBtn.setAttribute('aria-expanded',String(!overflow.hidden));});
+    document.querySelectorAll('[data-open-panel]').forEach(b=>b.addEventListener('click',()=>{overflow.hidden=true;overflowBtn.setAttribute('aria-expanded','false');showDrawer(b.dataset.openPanel);}));
+    document.addEventListener('click',e=>{if(!e.target.closest('.overflow-wrap')&&!overflow.hidden){overflow.hidden=true;overflowBtn.setAttribute('aria-expanded','false');}});
+    $('shareBtn').addEventListener('click',async()=>{const data={title:'Chelo',text:'Meet Chelo, a little chess companion that learns as you play.',url:location.href};try{if(navigator.share)await navigator.share(data);else if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(data.url);toast('Chelo link copied');}else toast('Share is not available on this device.');}catch(error){if(error.name!=='AbortError')toast('Could not open sharing.');}});
+    let touchStart=null;
+    document.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse')return;touchStart={x:e.clientX,y:e.clientY};},{passive:true});
+    document.addEventListener('pointerup',e=>{if(!touchStart)return;const dx=e.clientX-touchStart.x,dy=e.clientY-touchStart.y;const edge=touchStart.x<28;if(Math.abs(dx)>75&&Math.abs(dy)<90){if(dx>0&&edge)showDrawer('home');else if(dx<0&&drawer.classList.contains('open'))hideDrawer();}touchStart=null;},{passive:true});
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'){hideDrawer();overflow.hidden=true;overflowBtn.setAttribute('aria-expanded','false');}});
+
     $('promotionDialog').addEventListener('close',()=>{
       const choice=$('promotionDialog').returnValue;
       if(choice&&choice!=='cancel'&&pendingPromotion)playHuman(pendingPromotion.from,pendingPromotion.to,choice);
