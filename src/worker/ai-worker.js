@@ -265,7 +265,7 @@ async function handleSearch(data){
     // Keep the verified Polyglot opening book in front of the C++ search.
     // Only a legal, hash-matched book move is accepted; after the book, all
     // adaptive tree search runs through C++/V37 and the pet adapters.
-    if(mode==='adaptive'&&bookBinary){
+    if(mode==='adaptive'&&bookBinary&&brain.adaptiveSearchProfile().challengeRating>=800){
       const legal=chess.moves({verbose:true,skipSan:true});
       const bookMove=self.CheloPolyglotBookLookup(bookBinary,self.CheloPolyglotHash(chess),legal);
       if(bookMove){self.postMessage({id,ok:true,move:bookMove,depth:0,nodes:0,score:null,book:true,bookLookup:'polyglot-binary-search',cppEngine:false,engine:'polyglot-book',engineFallback:false,model:'chelo-v15-cpp-v37-dual-nnue'});return;}

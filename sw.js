@@ -1,5 +1,5 @@
 /* Chelo offline shell. Relative paths resolve under the deployed repository subpath. */
-const CACHE_NAME = 'chelo-shell-v25-stage15cpp-m8-search-hardening';
+const CACHE_NAME = 'chelo-shell-v26-hatchling-learning-match-flow';
 const ASSETS = [
   './', './index.html', './manifest.webmanifest', './assets/style.css', './assets/icon.svg', './assets/pieces.svg',
   './src/app/app.js', './src/engine/polyglot-random.js', './src/engine/chess.js',

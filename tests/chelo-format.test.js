@@ -84,15 +84,15 @@ assert.equal(proRestored.pets[4].data.i[0],'Chelo 5');
 
 // Adaptive challenge starts welcoming, then scales search budgets after results.
 const adaptive=makeBrain('free','adaptive-challenge');
-assert.equal(adaptive.data.elo,300,'A fresh pet must start at the 300 internal challenge estimate.');
+assert.equal(adaptive.data.elo,100,'A fresh pet must start at the conservative uncalibrated challenge baseline.');
 const starterProfile=adaptive.adaptiveSearchProfile();
-assert(starterProfile.maxNodes>=4000&&starterProfile.maxNodes<=6000,'Starter search budget should be deliberately approachable.');
+assert(starterProfile.maxNodes>=400&&starterProfile.maxNodes<=700&&starterProfile.maxDepth===1,'A fresh hatchling must start with a much smaller search budget and depth.');
 for(let i=0;i<4;i++)adaptive.updateAdaptiveChallenge('loss');
 const growingProfile=adaptive.adaptiveSearchProfile();
-assert(adaptive.data.elo>300,'Repeated player wins should gradually raise Chelo challenge.');
+assert(adaptive.data.elo>100,'Repeated player wins should gradually raise Chelo challenge.');
 assert(growingProfile.maxNodes>starterProfile.maxNodes&&growingProfile.maxTimeMs>starterProfile.maxTimeMs,'Chelo should think longer as challenge rises.');
 for(let i=0;i<3;i++)adaptive.updateAdaptiveChallenge('win');
-assert(adaptive.data.elo<300+4*54,'Repeated Chelo wins should lower the challenge again.');
+assert(adaptive.data.elo<100+4*54,'Repeated Chelo wins should lower the challenge again.');
 const ratingRoundTrip=makeBrain('free','rating-round-trip');ratingRoundTrip.importCompactData(adaptive.compactData());
 assert.equal(ratingRoundTrip.data.elo,adaptive.data.elo,'Adaptive challenge estimate must survive .chelo export/import.');
 assert.equal(ratingRoundTrip.data.trainerWinStreak,adaptive.data.trainerWinStreak,'Win streak must survive .chelo export/import.');

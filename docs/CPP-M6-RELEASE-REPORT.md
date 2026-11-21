@@ -52,3 +52,12 @@ M6 targeted checks:
 - `run-tests.sh`, `run-learning-tests.sh`, `run-nnue-tests.sh`, `run-search-tests.sh`, the three tactical tests, `run-worker-tests.sh`, native C++ verification, C++ parity, and WASM parity were run successfully in separate groups. The combined `run-m6-tests.sh` command exceeded this environment’s 120-second command window, so its slower tactical steps were executed separately.
 
 Real Android/Termux thermal and latency measurements remain outstanding. Cloudflare deployment, account UI, and authenticated player sync are also outside this milestone.
+
+
+## Post-M6 hatchling and match-flow follow-up
+
+A later playability pass corrected the initial companion profile after early use showed that the default opening-book access and 2,000-node / 120 ms / depth-4 search were too demanding for a brand-new pet. Fresh pets now start at internal challenge 100 with a 500-node, 65 ms, depth-1 budget. The perfect Polyglot opening book is gated until challenge 800. Never-played V16 pets carrying the old default value of 300 migrate to 100; pets with completed adaptive games retain their earned challenge value. The value remains a private tuning dial, not a calibrated chess rating.
+
+The match-completion report now distinguishes the game result and ending reason, then reports the number of pet decision positions that actually changed the Bond adapter and the number of engine-used coefficients changed. A controlled learning fixture checks that one confirmed pet-win update moves the V37 evaluation closer to its target. This verifies the direction of a single update, not a measured win-rate or Elo improvement over a game set.
+
+The board UI removes manual New Game and Undo controls. A completed match opens a result dialog with a single Next Match action. Claim Draw remains available only when threefold repetition or the 50-move claim is legal. The hamburger is limited to pet identity/personality, Arena and Friends Challenge; leaderboard, pets, Bond & Memories, Save & Sync, Settings, About and technical information live in the overflow menu. Ranked Arena and live friend invitations remain unavailable until independently attested match and invitation endpoints are deployed.

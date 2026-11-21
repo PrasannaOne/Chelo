@@ -17,11 +17,12 @@ const make=(plan='free')=>new Brain('learning',{persist:false,v14Mode:true,baseM
 const brain=make(),sharedModelBefore=brain.data.model.w1.slice();
 assert.equal(brain.limit,97*1024,'Free pet data must reserve space inside the full 100 KiB player file.');
 assert.equal(typeof brain.exportSoul,'undefined','The old .soul exporter must be removed.');
-assert.equal(brain.data.elo,300,'New Chelo pets begin with a gentle 300 internal challenge estimate.');
+assert.equal(brain.data.elo,100,'New Chelo pets begin at the conservative uncalibrated challenge baseline.');
+const oldUnplayed=make();oldUnplayed.data.elo=300;oldUnplayed.data.ratingGames=0;const migratedUnplayed=make();migratedUnplayed.importCompactData(oldUnplayed.compactData());assert.equal(migratedUnplayed.data.elo,100,'Unplayed pets from the previous arbitrary 300 baseline must migrate to the gentler hatchling profile.');
 const starter=brain.adaptiveSearchProfile();
 const profileSweep=[];for(const rating of [100,300,600,900,1200,1500,1800,2100,2400]){brain.data.elo=rating;profileSweep.push(brain.adaptiveSearchProfile());}
 for(let i=1;i<profileSweep.length;i++){assert(profileSweep[i].maxNodes>=profileSweep[i-1].maxNodes,'Adaptive node budget must be monotonic across its full rating range.');assert(profileSweep[i].maxTimeMs>=profileSweep[i-1].maxTimeMs,'Adaptive time budget must be monotonic across its full rating range.');assert(profileSweep[i].maxDepth>=profileSweep[i-1].maxDepth,'Adaptive depth must be monotonic across its full rating range.');}
-brain.data.elo=300;
+brain.data.elo=100;
 for(let i=0;i<8;i++)brain.updateAdaptiveChallenge('loss');
 const advanced=brain.adaptiveSearchProfile();
 assert(advanced.maxNodes>starter.maxNodes&&advanced.maxTimeMs>starter.maxTimeMs,'Challenge must scale up after repeated player wins.');
@@ -34,7 +35,11 @@ assert.equal(model.byteLength,49368,'The shared V37 model must remain frozen.');
 const position='rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1';
 brain.observePetMove(position,'e7e5',{side:'b'},1);
 const bondBefore=Array.from(brain.data.dualLora.bond.aW);
-brain.reinforce('win');
+const scoreBefore=brain.dualNnueState(position).score;
+const bondReport=brain.reinforce('win');
+const scoreAfter=brain.dualNnueState(position).score;
+assert(Math.abs(209-scoreAfter)<Math.abs(209-scoreBefore),'Bond training must move the V37 evaluation closer to the confirmed pet-win target on this controlled fixture.');
+assert(bondReport.updatedPositions>0&&bondReport.updatedCoefficients>0,'Match report must count real engine-consumed Bond coefficient changes.');
 assert(brain.data.dualLora.bond.steps>0,'A confirmed trainer match must train Bond.');
 assert.notDeepEqual(Array.from(brain.data.dualLora.bond.aW),bondBefore,'Bond Int8 coefficients should adapt after outcome feedback.');
 assert(brain.latestMemory(),'A completed trainer game must create a readable episodic memory.');

@@ -40,15 +40,17 @@ context.self=context;context.globalThis=context;vm.createContext(context);
   await messageHandler({data:{id:15,fen:hardFen,brainData:{},plan:'free',mode:'adaptive',maxTimeMs:10000,maxNodes:900,maxDepth:4,v14Mode:true,baseVersion:checkpoint.baseVersion}});
   if(!sent[6].ok||!sent[6].cppEngine||sent[6].engine!=='cpp-wasm'||sent[6].engineFallback||sent[6].nodes!==900||sent[6].maxNodes!==900||sent[6].maxTimeMs!==10000||sent[6].depth>4)throw new Error(`Adaptive companion did not use the canonical C++/V37 engine within its personalised node budget: ${JSON.stringify(sent[6])}`);
 
-  await messageHandler({data:{id:16,fen:'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',brainData:{},plan:'free',mode:'adaptive',maxTimeMs:10000,maxNodes:900,maxDepth:4,v14Mode:true,baseVersion:checkpoint.baseVersion}});
-  if(!sent[7].ok||!sent[7].book||sent[7].engine!=='polyglot-book'||!sent[7].move)throw new Error(`Adaptive companion failed to retain the verified Polyglot opening book: ${JSON.stringify(sent[7])}`);
+  await messageHandler({data:{id:16,fen:'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',brainData:{},plan:'free',mode:'adaptive',maxTimeMs:65,maxNodes:500,maxDepth:1,v14Mode:true,baseVersion:checkpoint.baseVersion}});
+  if(!sent[7].ok||sent[7].book||!sent[7].cppEngine||sent[7].engine!=='cpp-wasm'||!sent[7].move||sent[7].nodes>500||sent[7].depth>1)throw new Error(`An uncalibrated hatchling must not lean on perfect opening-book moves: ${JSON.stringify(sent[7])}`);
+  await messageHandler({data:{id:18,fen:'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',brainData:{elo:800},plan:'free',mode:'adaptive',maxTimeMs:10000,maxNodes:900,maxDepth:4,v14Mode:true,baseVersion:checkpoint.baseVersion}});
+  if(!sent[8].ok||!sent[8].book||sent[8].engine!=='polyglot-book'||!sent[8].move)throw new Error(`A sufficiently calibrated companion should use the verified Polyglot opening book: ${JSON.stringify(sent[8])}`);
 
   await messageHandler({data:{id:13,fen:hardFen,brainData:{},plan:'free',mode:'apex',maxTimeMs:10000,maxNodes:1000,v14Mode:true,baseVersion:checkpoint.baseVersion}});
-  if(!sent[8].ok||sent[8].smpWorkers!==1||sent[8].sharedTranspositionTable!==false||!sent[8].smpFallbackReason)throw new Error('Apex did not safely fall back to one worker without cross-origin isolation.');
+  if(!sent[9].ok||sent[9].smpWorkers!==1||sent[9].sharedTranspositionTable!==false||!sent[9].smpFallbackReason)throw new Error('Apex did not safely fall back to one worker without cross-origin isolation.');
 
   await messageHandler({data:{id:14,fen:hardFen,brainData:{},plan:'free',mode:'legacy',useCppEngine:true,maxTimeMs:10000,maxNodes:1000,maxDepth:4,v14Mode:true,baseVersion:checkpoint.baseVersion}});
-  if(!sent[9].ok||!sent[9].cppEngine||sent[9].depth!==4||!sent[9].move)throw new Error(`C++ WASM Worker bridge failed: ${JSON.stringify(sent[9])}`);
+  if(!sent[10].ok||!sent[10].cppEngine||sent[10].depth!==4||!sent[10].move)throw new Error(`C++ WASM Worker bridge failed: ${JSON.stringify(sent[9])}`);
   await messageHandler({data:{id:17,fen:hardFen,brainData:{},plan:'free',mode:'adaptive',maxTimeMs:10,maxNodes:10000000,maxDepth:32,v14Mode:true,baseVersion:checkpoint.baseVersion}});
-  if(!sent[10].ok||!sent[10].cppEngine||sent[10].nodes>=10000000||sent[10].maxTimeMs!==10)throw new Error(`Adaptive C++ search did not respect the time cap as well as the node ceiling: ${JSON.stringify(sent[10])}`);
-  console.log(`AI Worker M6 tests passed: book hit ${sent[0].move}; exact 900-node C++/V37 adaptive budget; Polyglot opening book; ranked JS fairness; shared SAB TT helper; legacy C++ time search and combined time ceiling passed.`);
+  if(!sent[11].ok||!sent[11].cppEngine||sent[11].nodes>=10000000||sent[11].maxTimeMs!==10)throw new Error(`Adaptive C++ search did not respect the time cap as well as the node ceiling: ${JSON.stringify(sent[10])}`);
+  console.log(`AI Worker M6 tests passed: book hit ${sent[0].move}; exact 900-node C++/V37 adaptive budget; hatchling book lock and calibrated Polyglot opening book; ranked JS fairness; shared SAB TT helper; legacy C++ time search and combined time ceiling passed.`);
 })().catch(error=>{console.error(error);process.exitCode=1;});

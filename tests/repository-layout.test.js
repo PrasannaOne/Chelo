@@ -7,7 +7,10 @@ assert(html.includes('<title>Chelo | Your little chess companion</title>'));
 assert(html.includes('./src/engine/fast-search.js')&&html.includes('./src/nnue/dual-nnue.js')&&html.includes('./src/soul/brain.js')&&html.includes('./src/app/app.js'));
 assert(!/<script[^>]+src=["']https?:/i.test(html)&&!/<link[^>]+href=["']https?:/i.test(html)&&!/@import\s+url\(["']?https?:/i.test(css),'runtime CDN dependency found');
 assert(/new Worker\(new URL\('\.\/src\/worker\/ai-worker\.js', document\.baseURI\)/.test(app),'AI worker URL must resolve from the repository base path');
-assert(app.indexOf('./src/worker/ai-worker.js')>=0&&app.includes('loadDualModel()')&&app.includes('brain.chooseMove(chess, {maxNodes:profile.maxNodes,maxTimeMs:profile.maxTimeMs,maxDepth:profile.maxDepth,bookBinary:openingBookBinary,usePolicy:false})')&&app.includes("mode:'adaptive'"),'main-thread fallback and Worker must use the verified FastSearch path with adaptive companion budgets');
+assert(app.indexOf('./src/worker/ai-worker.js')>=0&&app.includes('loadDualModel()')&&app.includes('bookBinary:bookBinaryForLevel')&&app.includes("mode:'adaptive'"),'main-thread fallback and Worker must use the verified FastSearch path with gentle adaptive companion budgets');
+assert(html.includes('data-open-workspace="leaderboard"')&&html.includes('data-open-workspace="pets"')&&html.includes('data-open-workspace="bond"')&&html.includes('data-open-workspace="save"'),'overflow must contain pet management and account workspaces');
+assert(html.includes('id="nextMatchBtn"')&&html.includes('MATCH COMPLETE')&&!html.includes('id="undoBtn"')&&!html.includes('id="newGameBtn"'),'completed matches need a result and next-match flow, with no manual undo/new-game controls');
+assert(html.includes('data-open-workspace="arena"')&&html.includes('data-open-workspace="friends"'),'hamburger must contain the two challenge destinations');
 assert(app.includes("const LEGACY_PET_STORAGE_KEY = 'chessling_pet_1'")&&app.includes("const PET_STORAGE_KEY = 'chelo_pet_1'"),'legacy pet save migration keys missing');
 const workerImports=[...worker.matchAll(/importScripts\(([^;]+)\);/g)].flatMap(m=>[...m[1].matchAll(/'([^']+)'/g)].map(x=>x[1]));
 for(const rel of workerImports){const abs=path.resolve(root,'src/worker',rel);assert(fs.existsSync(abs),`worker import path missing: ${rel}`);}

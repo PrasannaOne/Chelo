@@ -378,7 +378,7 @@
         schema:16,petName:'Chelo',handle:'',trainerName:'',gen:1,xp:0,
         // Internal adaptive challenge estimate. This is not a certified chess Elo
         // and is kept separate from Mastery and Arena rank.
-        elo:300,trainerWinStreak:0,ratingGames:0,
+        elo:100,trainerWinStreak:0,ratingGames:0,
         wins:0,losses:0,draws:0,games:0,
         weights:{},policy:{},traits:{bold:50,curious:50,patient:50},memories:[],
         model:createModel(stamp),v14Adapter:null,dualLora:freshDualLora(),replay:[],memory:{},humanOpenings:{},openingReplies:{},pending:[],
@@ -390,6 +390,9 @@
     normalise(source){
       const base=this.defaults(),old=source&&typeof source==='object'?source:{};
       const data={...base,...old,schema:16};
+      // Earlier V6 builds gave every untouched hatchling an arbitrary 300
+      // challenge estimate. Move only never-calibrated pets to the gentler baseline.
+      if((Number(old.ratingGames)||0)===0&&Number(old.elo)===300)data.elo=100;
       data.weights={};data.policy={};data.v14Adapter=null;delete data.practiceGames;data.dualLora=normaliseDualLora(old.dualLora);
       data.xp=Math.max(0,Math.floor(Number(old.xp)||0));
       data.traits={...base.traits,...(old.traits||{})};
@@ -496,7 +499,7 @@
         t:['bold','curious','patient'].map(key=>Math.round(Number(data.traits?.[key])||0)),
         dl:packDualLora(data.dualLora),m:memoryRows,u:pendingRows,
         e:(Array.isArray(data.memories)?data.memories:[]).slice(-12).map(item=>[STORY_KIND_TO_CODE[item.kind]||0,Math.max(0,Math.floor(Number(item.day)||0)),clamp(Math.floor(Number(item.plies)||0),0,600),clamp(Math.floor(Number(item.tactical)||0),0,40),Math.max(0,TRAIT_KEYS.indexOf(item.trait))]).filter(item=>item[0]),
-        y:[data.mastery?.tier||'Unbenchmarked',Number(data.mastery?.games)||0,data.mastery?.score==null?null:Number(data.mastery.score),clamp(Math.round(Number(data.elo)||300),100,2400),Math.max(0,Math.floor(Number(data.trainerWinStreak)||0)),Math.max(0,Math.floor(Number(data.ratingGames)||0))],
+        y:[data.mastery?.tier||'Unbenchmarked',Number(data.mastery?.games)||0,data.mastery?.score==null?null:Number(data.mastery.score),clamp(Math.round(Number(data.elo)||100),100,2400),Math.max(0,Math.floor(Number(data.trainerWinStreak)||0)),Math.max(0,Math.floor(Number(data.ratingGames)||0))],
         c:Number(data.createdAt)||0,vv:Number(data.updatedAt)||0
       };
     }
@@ -1078,22 +1081,22 @@
     }
 
     adaptiveSearchProfile(){
-      // This is a private challenge estimate, NOT a certified chess Elo.
-      // The same search code is used at every level; only its thinking budget grows.
-      const rating=clamp(Number(this.data.elo)||300,100,2400),progress=(rating-100)/(2400-100);
+      // Private challenge dial, not a measured chess Elo. Hatchlings begin with
+      // a deliberately small search budget; controlled results grow it gradually.
+      const rating=clamp(Number(this.data.elo)||100,100,2400),progress=(rating-100)/(2400-100);
       const eased=progress*progress*(3-2*progress);
       return {
         challengeRating:rating,
-        maxNodes:Math.round(2000+eased*178000),
-        maxTimeMs:Math.round(120+eased*680),
-        maxDepth:Math.round(4+eased*10)
+        maxNodes:Math.round(500+eased*120000),
+        maxTimeMs:Math.round(65+eased*655),
+        maxDepth:Math.round(1+eased*11)
       };
     }
 
     updateAdaptiveChallenge(outcome){
       // Player victory means Chelo should gradually raise its challenge.
       // Pet victory lowers it gently; draws cause only a small upward nudge.
-      const previous=clamp(Number(this.data.elo)||300,100,2400);
+      const previous=clamp(Number(this.data.elo)||100,100,2400);
       let delta=0;
       if(outcome==='loss'){
         this.data.trainerWinStreak=Math.min(1000,(Number(this.data.trainerWinStreak)||0)+1);
@@ -1374,10 +1377,13 @@
       const result=finalPosition&&typeof finalPosition.result==='function'?finalPosition.result():null;
       const winner=result==='w'||result==='b'?result:result==='draw'?'draw':(outcome==='win'?'b':outcome==='loss'?'w':'draw');
       const layer='bond';
+      const training={updatedPositions:0,updatedCoefficients:0,skippedPositions:0,skipReasons:{}};
       {
         for(const item of this.data.pending){
           const target=this.outcomeFor(item,winner),entry=this.entry(item.f,item.m),importance=1+Math.min(0.5,(Number(entry.tactical)||0)/20);
-          this.trainDualAdapter(item.f,target,item.side,layer,importance,(Number(entry.tactical)||0)>0);
+          const update=this.trainDualAdapter(item.f,target,item.side,layer,importance,(Number(entry.tactical)||0)>0);
+          if(update?.trained){training.updatedPositions++;training.updatedCoefficients+=Number(update.updates)||0;}
+          else{training.skippedPositions++;const reason=update?.reason||'no-coefficient-change';training.skipReasons[reason]=(training.skipReasons[reason]||0)+1;}
           entry.score=clamp(entry.score+(target>0?4:target<0?-4:1),-100,100);
           entry.outcomes++;
           entry.last=now();
@@ -1388,10 +1394,10 @@
         this.data.gen=1+Math.floor(this.data.xp/80);
       }
       const memory=this.recordMatchMemory(outcome,finalPosition);
-      this.updateAdaptiveChallenge(outcome);
+      const challenge=this.updateAdaptiveChallenge(outcome);
       this.data.pending=[];
       this.save();
-      return {trained:true,layer:'bond',memory,updates:this.data.dualLora.bond.steps};
+      return {trained:training.updatedPositions>0,layer:'bond',memory,updates:this.data.dualLora.bond.steps,challenge,...training};
     }
 
     resetPending(){this.data.pending=[];this.data.geneticTrace={p:0,n:0,b:0,r:0,q:0};this.data.lastHumanMove=null;this.save();}

@@ -126,4 +126,4 @@ On an Android device, `bash benchmarks/termux-benchmark.sh` measures native sear
 
 ## Adaptive companion
 
-New pets begin at an approachable internal challenge estimate of 300. Completed games gradually adjust Chelo and its thinking budget to the trainer. This estimate is not a certified Elo rating; the strength curve remains subject to real-player calibration.
+New and never-calibrated pets begin at a conservative internal challenge setting of 100, with a 500-node / 65 ms / depth-1 starter search. Perfect Polyglot opening-book moves are withheld until the internal challenge setting reaches 800. Completed trainer games gradually adjust the challenge budget. This private dial is not measured Elo, and the strength curve still needs real-player calibration.

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#10130f">
   <meta name="description" content="Raise a little chess companion. Chelo learns as you play, entirely offline.">
-  <title>Chelo</title>
+  <title>Chelo | Your little chess companion</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./assets/icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./assets/style.css">
@@ -14,7 +14,7 @@
   <div class="app-shell" id="top">
     <header class="topbar">
       <div class="topbar-left">
-        <button class="icon-button hamburger" id="drawerOpen" type="button" aria-label="Open menu" aria-controls="sideDrawer" aria-expanded="false"><span></span><span></span><span></span></button>
+        <button class="icon-button hamburger" id="drawerOpen" type="button" aria-label="Open pet and challenges" aria-controls="sideDrawer" aria-expanded="false"><span></span><span></span><span></span></button>
         <span class="brand">Chelo</span>
       </div>
       <nav class="topbar-actions" aria-label="Quick actions">
@@ -23,9 +23,14 @@
         <div class="overflow-wrap">
           <button class="icon-button" id="overflowBtn" type="button" aria-label="More options" aria-expanded="false" aria-controls="overflowMenu"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg></button>
           <div class="overflow-menu" id="overflowMenu" hidden>
-            <button type="button" data-open-panel="settings">Settings</button>
-            <button type="button" data-open-panel="about">About Chelo</button>
-            <button type="button" data-open-panel="technical">Technical details</button>
+            <button type="button" data-open-workspace="leaderboard">Leaderboard</button>
+            <button type="button" data-open-workspace="pets">My Pets</button>
+            <button type="button" data-open-workspace="bond">Bond &amp; Memories</button>
+            <button type="button" data-open-workspace="save">Save &amp; Sync</button>
+            <div class="menu-divider"></div>
+            <button type="button" data-open-workspace="settings">Settings</button>
+            <button type="button" data-open-workspace="about">About Chelo</button>
+            <button type="button" data-open-workspace="technical">Technical details</button>
           </div>
         </div>
       </nav>
@@ -36,12 +41,6 @@
         <div class="board-topline"><div><span class="side-dot white-dot"></span><strong id="whiteName">You</strong><span class="muted" id="whiteMode">· White</span></div><div class="thinking" id="thinkingLabel">YOUR MOVE</div></div>
         <div class="board-frame"><div id="chessboard" class="chessboard" role="grid" aria-label="Chess board"></div></div>
         <div class="board-bottomline"><div><span class="side-dot black-dot"></span><strong id="blackName">Chelo</strong><span class="muted" id="blackMode">· Black</span></div><div class="turn-state" id="turnState">Your turn</div></div>
-        <div class="game-controls">
-          <button class="control-button primary-control" id="newGameBtn" type="button" aria-label="New game" title="New game"><svg viewBox="0 0 24 24"><path d="M20 7v5h-5M4.8 16.8A8 8 0 0 0 19.5 12M4 17v-5h5M19.2 7.2A8 8 0 0 0 4.5 12"/></svg><span>New</span></button>
-          <button class="control-button" id="undoBtn" type="button" disabled aria-label="Undo turn" title="Undo turn"><svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5M4 9h10a6 6 0 0 1 0 12h-2"/></svg><span>Undo</span></button>
-          <button class="control-button" id="flipBtn" type="button" aria-label="Flip board" title="Flip board"><svg viewBox="0 0 24 24"><path d="M7 3 3 7l4 4M3 7h18M17 21l4-4-4-4m4 4H3"/></svg><span>Flip</span></button>
-          <button class="control-button icon-only" id="historyOpen" type="button" aria-label="Move history" title="Move history"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8m0-5v5h5M12 7v5l3 2"/></svg></button>
-        </div>
         <button class="claim-draw" id="claimDrawBtn" type="button" hidden>Claim draw</button>
         <div class="game-message" id="gameMessage" aria-live="polite"></div>
       </section>
@@ -49,37 +48,126 @@
   </div>
 
   <div class="drawer-scrim" id="drawerScrim" hidden></div>
-  <aside class="side-drawer" id="sideDrawer" aria-label="Chelo menu" aria-hidden="true">
-    <div class="drawer-head"><div class="drawer-pet-avatar" id="petAvatar">🐣</div><div class="drawer-pet-copy"><div class="drawer-pet-name"><strong id="petName">Chelo</strong><button class="text-button" id="renameBtn" type="button">Rename</button></div><div class="pet-sub" id="petMood">Hatchling · Still finding its style</div><div class="personality-label">PERSONALITY</div><div class="personality-value" id="drawerPersonality">Curious</div></div><button class="icon-button drawer-close" id="drawerClose" type="button" aria-label="Close menu"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>
-    <div class="drawer-nav" role="tablist" aria-label="Menu sections">
-      <button type="button" class="drawer-tab active" data-drawer-panel="home" role="tab" aria-selected="true">Pet</button>
-      <button type="button" class="drawer-tab" data-drawer-panel="learning" role="tab" aria-selected="false">Learning</button>
-      <button type="button" class="drawer-tab" data-drawer-panel="history" role="tab" aria-selected="false">History</button>
-      <button type="button" class="drawer-tab" data-drawer-panel="save" role="tab" aria-selected="false">Save</button>
+  <aside class="side-drawer" id="sideDrawer" aria-label="Pet personality and challenges" aria-hidden="true">
+    <div class="drawer-topline"><span class="drawer-kicker">YOUR COMPANION</span><button class="icon-button drawer-close" id="drawerClose" type="button" aria-label="Close menu"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>
+    <div class="pet-identity">
+      <div class="drawer-pet-avatar" id="petAvatar">🐣</div>
+      <div class="drawer-pet-copy"><strong id="petName">Chelo</strong><div class="pet-sub" id="petMood">Hatchling</div></div>
     </div>
-    <div class="drawer-content">
-      <section class="drawer-panel active" data-panel="home" role="tabpanel">
-        <div class="compact-stats">
-          <div><span>GROWTH</span><b id="growthValue">1</b></div><div><span>MASTERY</span><b id="masteryValue">Unbenchmarked</b></div><div><span>ARENA RANK</span><b id="arenaRankValue">Unranked</b></div><div><span>W · L · D</span><b id="recordValue">0 · 0 · 0</b></div>
-        </div>
-        <div class="drawer-row"><span>Learning status</span><strong id="learningState">Ready</strong></div>
-        <div class="drawer-actions"><button class="drawer-action" id="drawerNewGame" type="button">New game</button><button class="drawer-action" id="drawerRename" type="button">Rename pet</button></div>
-      </section>
-      <section class="drawer-panel" data-panel="learning" role="tabpanel" hidden>
-        <div class="compact-stats"><div><span>MEMORIES</span><b id="memoryCount">0</b></div><div><span>CHALLENGE</span><b id="challengeValue">300 · Adaptive</b></div><div><span>BOND UPDATES</span><b id="modelUpdates">0</b></div><div><span>ARENA UPDATES</span><b id="policyUpdates">0</b></div></div>
-        <div class="save-size"><div><span>PLAYER SAVE</span><strong id="brainSize">0.0 KiB <small>/ 100 KiB</small></strong></div><div class="budget-track"><div id="budgetFill"></div></div><small id="budgetLimitLabel">100 KiB Free limit</small></div>
-        <p class="drawer-note" id="learningNote">Its first memories are being formed.</p><p class="drawer-note" id="memoryEcho">No completed-game memories yet.</p><p class="drawer-note" id="policySummary">Learned preferences: 0/4 active</p>
-      </section>
-      <section class="drawer-panel" data-panel="history" role="tabpanel" hidden><div class="drawer-row"><span>Moves</span><strong id="moveCount">0 moves</strong></div><ol id="moveList" class="move-list"><li class="empty-moves">No moves yet</li></ol></section>
-      <section class="drawer-panel" data-panel="save" role="tabpanel" hidden><p class="drawer-note">One file. Your player and every pet.</p><div class="save-buttons"><button class="drawer-action" id="exportBtn" type="button">Export .chelo</button><button class="drawer-action" id="importBtn" type="button">Import .chelo</button><input type="file" id="importFile" accept=".chelo,application/vnd.chelo+json,application/json" hidden></div></section>
-      <section class="drawer-panel" data-panel="settings" role="tabpanel" hidden><h2>Settings</h2><div class="drawer-row"><span>Board orientation</span><button class="drawer-action small" id="settingsFlip" type="button">Flip board</button></div><div class="drawer-row"><span>Start a fresh match</span><button class="drawer-action small" id="settingsNewGame" type="button">New game</button></div></section>
-      <section class="drawer-panel" data-panel="about" role="tabpanel" hidden><h2>Chelo</h2><p class="drawer-note">A little chess companion that learns through play.</p><p class="drawer-note">Offline-first · One portable .chelo save</p></section>
-      <section class="drawer-panel" data-panel="technical" role="tabpanel" hidden><h2>Technical</h2><div class="drawer-row"><span>Chess engine</span><strong>C++ / WebAssembly</strong></div><div class="drawer-row"><span>Evaluation</span><strong>V37 NNUE</strong></div><div class="drawer-row"><span>Storage</span><strong>Local .chelo</strong></div></section>
+    <div class="personality-card"><div class="personality-label">PERSONALITY</div><div class="personality-value" id="drawerPersonality">Curious explorer</div></div>
+    <div class="challenge-section">
+      <div class="section-kicker">CHALLENGES</div>
+      <button class="challenge-link" type="button" data-open-workspace="arena"><span class="challenge-symbol">♜</span><span><strong>Arena</strong><small>Meet pets from around the world</small></span><span class="challenge-arrow">›</span></button>
+      <button class="challenge-link" type="button" data-open-workspace="friends"><span class="challenge-symbol">♟</span><span><strong>Friends Challenge</strong><small>Invitations are not live yet</small></span><span class="challenge-arrow">›</span></button>
     </div>
-    <div class="drawer-footer"><span>CHELO</span><span>Made to grow with you</span></div>
+    <div class="drawer-footer"><span>CHELO</span><span>Every game leaves a little story</span></div>
   </aside>
+
+  <dialog id="workspaceDialog" class="workspace-dialog">
+    <div class="workspace-shell">
+      <header class="workspace-header"><div><div class="workspace-eyebrow" id="workspaceEyebrow">CHELO</div><h2 id="workspaceTitle">Bond &amp; Memories</h2></div><button class="icon-button" id="workspaceClose" type="button" aria-label="Close"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button></header>
+      <div class="workspace-content" id="workspaceContent">
+        <section class="workspace-panel" data-workspace="leaderboard" hidden>
+          <p class="panel-intro">The verified global standings. Only independently verified ranked matches count.</p>
+          <div id="leaderboardState" class="status-line">Checking Arena service…</div>
+          <ol id="leaderboardList" class="leaderboard-list"></ol>
+        </section>
+
+        <section class="workspace-panel" data-workspace="pets" hidden>
+          <p class="panel-intro">Your little collection. Each Chelo keeps its own personality, Bond and memories.</p>
+          <div id="petsList" class="pet-list"></div>
+          <button class="primary-action" id="createPetBtn" type="button">Adopt another pet</button>
+          <p class="muted-note" id="petLimitNote">Free collection: 1 pet</p>
+        </section>
+
+        <section class="workspace-panel" data-workspace="bond" hidden>
+          <div class="metric-grid">
+            <div class="metric"><span>GROWTH</span><strong id="growthValue">1</strong></div>
+            <div class="metric"><span>TRAINER RECORD</span><strong id="recordValue">0 · 0 · 0</strong></div>
+            <div class="metric"><span>BOND ADAPTATIONS</span><strong id="modelUpdates">0</strong></div>
+            <div class="metric"><span>POSITION MEMORIES</span><strong id="memoryCount">0</strong></div>
+          </div>
+          <div class="detail-row"><span>Personal challenge</span><strong id="challengeValue">100 · Growing</strong></div>
+          <div class="detail-row"><span>Arena rank</span><strong id="arenaRankValue">Unranked</strong></div>
+          <div class="detail-row"><span>Mastery</span><strong id="masteryValue">Unbenchmarked</strong></div>
+          <div class="detail-row"><span>Bond status</span><strong id="learningState">Ready</strong></div>
+          <h3 class="subheading">Recent memories</h3>
+          <div id="memoryList" class="memory-list"><p class="empty-note">Your first completed match will become its first memory.</p></div>
+          <div class="save-size"><div><span>COMPLETE PLAYER SAVE</span><strong id="brainSize">0.0 KiB <small>/ 100 KiB</small></strong></div><div class="budget-track"><div id="budgetFill"></div></div><small id="budgetLimitLabel">100 KiB Free limit</small></div>
+          <h3 class="subheading">Current match moves</h3>
+          <div class="detail-row"><span>Moves played</span><strong id="moveCount">0</strong></div>
+          <ol id="moveList" class="move-list"><li class="empty-note">No moves yet.</li></ol>
+        </section>
+
+        <section class="workspace-panel" data-workspace="save" hidden>
+          <p class="panel-intro">One portable <code>.chelo</code> file holds your player and every pet.</p>
+          <div class="save-actions"><button class="secondary-action" id="exportBtn" type="button">Export .chelo</button><button class="secondary-action" id="importBtn" type="button">Import .chelo</button><input type="file" id="importFile" accept=".chelo,application/vnd.chelo+json,application/json" hidden></div>
+          <div class="subheading-block"><h3>Cloud sync</h3><p id="syncState" class="status-line">Offline save is active. Connect your Arena Worker to enable account sync.</p></div>
+          <label class="field-label" for="apiBaseInput">Arena Worker URL</label><input class="text-input" id="apiBaseInput" type="url" inputmode="url" placeholder="https://your-worker.workers.dev">
+          <button class="secondary-action full-action" id="saveApiBaseBtn" type="button">Save service address</button>
+          <div class="subheading-block"><h3>Trainer account</h3><p class="muted-note">Create a globally unique trainer and pet handle. Your access token is shown once by the server.</p></div>
+          <label class="field-label" for="trainerHandleInput">Trainer handle</label><input class="text-input" id="trainerHandleInput" maxlength="20" autocomplete="username" placeholder="your_handle">
+          <label class="field-label" for="petHandleInput">Pet handle</label><input class="text-input" id="petHandleInput" maxlength="20" placeholder="your_chelo">
+          <label class="field-label" for="accountPetNameInput">Pet display name</label><input class="text-input" id="accountPetNameInput" maxlength="32" placeholder="Chelo">
+          <button class="primary-action full-action" id="createAccountBtn" type="button">Create trainer account</button>
+          <label class="field-label" for="accessTokenInput">Existing access token</label><input class="text-input" id="accessTokenInput" type="password" autocomplete="off" placeholder="Paste your saved 64-character token">
+          <div class="sync-actions"><button class="secondary-action" id="copyTokenBtn" type="button">Copy token</button><button class="secondary-action" id="saveTokenBtn" type="button">Save token</button></div>
+          <div class="sync-actions"><button class="secondary-action" id="downloadCloudBtn" type="button">Restore cloud save</button><button class="secondary-action" id="uploadCloudBtn" type="button">Sync this device</button></div>
+          <p class="muted-note">Keep your access token private and backed up. It is not included in your .chelo file.</p>
+        </section>
+
+        <section class="workspace-panel" data-workspace="settings" hidden>
+          <p class="panel-intro">Small touches for your board.</p>
+          <div class="detail-row"><span>Board orientation</span><button class="secondary-action compact-action" id="flipBoardBtn" type="button">Flip board</button></div>
+          <div class="detail-row"><span>Current colour</span><strong>Midnight Forest</strong></div>
+        </section>
+
+        <section class="workspace-panel" data-workspace="about" hidden>
+          <div class="about-mark">♞</div><p class="panel-intro">Chelo is an offline-first chess companion. Your pet grows its own personality and learns from the games you play together.</p>
+          <div class="detail-row"><span>Game</span><strong>Chelo</strong></div>
+          <div class="detail-row"><span>Portable save</span><strong>.chelo</strong></div>
+          <div class="detail-row"><span>Made by</span><strong>Prasanna ❤️</strong></div>
+        </section>
+
+        <section class="workspace-panel" data-workspace="technical" hidden>
+          <div class="detail-row"><span>Search engine</span><strong>C++ / WebAssembly</strong></div>
+          <div class="detail-row"><span>Shared evaluation</span><strong>V37 NNUE</strong></div>
+          <div class="detail-row"><span>Personal learning</span><strong>Bond adapter</strong></div>
+          <div class="detail-row"><span>Arena learning</span><strong id="arenaLearningState">Awaiting verified battles</strong></div>
+          <div class="detail-row"><span>Offline play</span><strong>Available</strong></div>
+        </section>
+
+        <section class="workspace-panel" data-workspace="arena" hidden>
+          <p class="panel-intro">Your Chelo against other players' pets.</p>
+          <div id="arenaServiceState" class="status-line">Checking Arena service…</div>
+          <div class="feature-status"><strong>Ranked Arena</strong><p>Not open yet. The current server can replay legal games, but it cannot independently attest that each pet made its submitted moves. Ranked points and Arena learning stay locked until that verification exists.</p></div>
+          <button class="secondary-action full-action" id="openLeaderboardBtn" type="button">View leaderboard</button>
+        </section>
+
+        <section class="workspace-panel" data-workspace="friends" hidden>
+          <p class="panel-intro">Challenge a friend's Chelo by its unique pet handle.</p>
+          <div class="feature-status"><strong>Friend challenges are being prepared</strong><p>The current Worker does not yet have invitation, acceptance or live-matchmaking routes. I have not added pretend challenge buttons or unverified Arena rewards.</p></div>
+          <div class="detail-row"><span>Your pet handle</span><strong id="yourPetHandle">Not registered</strong></div>
+          <button class="secondary-action full-action" id="openSaveFromFriendsBtn" type="button">Set up trainer account</button>
+        </section>
+      </div>
+      <div class="workspace-footer"><span>CHELO</span><span id="workspaceFooterNote">Your companion, your story</span></div>
+    </div>
+  </dialog>
+
+  <dialog id="matchResultDialog" class="match-result-dialog">
+    <div class="result-content">
+      <div class="result-eyebrow">MATCH COMPLETE</div>
+      <div class="result-icon" id="resultIcon">♟</div>
+      <h2 id="resultTitle">You won</h2>
+      <p class="result-reason" id="resultReason">Checkmate</p>
+      <div class="result-learning" id="resultLearning">Chelo saved a new memory.</div>
+      <button class="primary-action result-next" id="nextMatchBtn" type="button">Next match</button>
+    </div>
+  </dialog>
 
   <dialog id="promotionDialog" class="promotion-dialog"><form method="dialog"><h3>Promote pawn</h3><div class="promotion-options"><button value="q" type="submit">♕</button><button value="r" type="submit">♖</button><button value="b" type="submit">♗</button><button value="n" type="submit">♘</button></div><button class="cancel-promo" value="cancel" type="submit">Cancel</button></form></dialog>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="./src/engine/polyglot-random.js"></script><script src="./src/engine/chess.js"></script><script src="./src/engine/endgame-kpk.js"></script><script src="./src/engine/fast-search.js"></script><script src="./src/nnue/dual-nnue.js"></script><script src="./src/soul/chelo-save.js"></script><script src="./src/soul/brain.js"></script><script src="./src/app/app.js"></script>
-</body></html>
+</body>
+</html>
