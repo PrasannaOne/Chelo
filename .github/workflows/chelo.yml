@@ -39,7 +39,7 @@ jobs:
         run: |
           set -euo pipefail
           test -f Chelo.zip || { echo 'Chelo.zip is missing from the repository root.'; exit 1; }
-          python3 - <<'PY'
+          python3 - <<'PYCODE'
           import pathlib, stat, zipfile
           archive = pathlib.Path('Chelo.zip')
           with zipfile.ZipFile(archive) as z:
@@ -63,17 +63,16 @@ jobs:
                   'cpp/uci_main.cpp', 'build_termux.sh', 'build_wasm.sh',
                   'build-static.sh', 'run-m8-engine-tests.sh',
                   'models/dual-nnue-v37.bin', 'tests/uci-gauntlet.js',
-                  'docs/CPP-M8-ENGINE-RELEASE.md',
-                  '.github/workflows/chelo.yml', '.github/workflows/pages.yml'
+                  'docs/CPP-M8-ENGINE-RELEASE.md'
               ]
               missing = [name for name in required if name not in names]
               if missing:
                   raise SystemExit('Archive is incomplete: ' + ', '.join(missing))
-              forbidden = [n for n in names if n == '.env' or n.startswith('.env.') or n.startswith('.git/')]
+              forbidden = [n for n in names if n == '.env' or n.startswith('.env.') or n.startswith('.git/') or n.startswith('.github/')]
               if forbidden:
-                  raise SystemExit('Archive contains secret/Git metadata paths: ' + ', '.join(forbidden[:10]))
+                  raise SystemExit('Archive contains secret/Git metadata/workflow paths: ' + ', '.join(forbidden[:10]))
           print(f'Archive validated: {len(files)} files, {archive.stat().st_size:,} compressed bytes, {total:,} uncompressed bytes.')
-          PY
+          PYCODE
 
       - name: Extract archive into isolated staging directory
         shell: bash
@@ -81,7 +80,7 @@ jobs:
           set -euo pipefail
           STAGE="$RUNNER_TEMP/chelo-project"
           mkdir -p "$STAGE"
-          python3 - "$STAGE" <<'PY'
+          python3 - "$STAGE" <<'PYCODE'
           import pathlib, sys, zipfile
           root = pathlib.Path(sys.argv[1]).resolve()
           with zipfile.ZipFile('Chelo.zip') as z:
@@ -94,7 +93,7 @@ jobs:
                       raise SystemExit(f'Unsafe extraction path: {info.filename}')
                   out.parent.mkdir(parents=True, exist_ok=True)
                   out.write_bytes(z.read(info))
-          PY
+          PYCODE
           test -f "$STAGE/index.html"
           test -f "$STAGE/cpp/chelo_engine.cpp"
           echo "CHELO_STAGE=$STAGE" >> "$GITHUB_ENV"
@@ -121,7 +120,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: chelo-validated-static-site
-          path: ${{ env.CHELO_STAGE }}/_site
+          path: ${{ runner.temp }}/chelo-project/_site
           if-no-files-found: error
           retention-days: 14
 
@@ -129,10 +128,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # The archive is the complete source of truth. Remove stale project files
-          # that are absent from it, while preserving Git internals and the uploaded archive.
+          # The archive owns application files, never GitHub workflow definitions.
+          # GitHub's default Actions token cannot create/update .github/workflows files.
           rsync -a --delete \
             --exclude='.git/' \
+            --exclude='.github/' \
             --exclude='Chelo.zip' \
             "$CHELO_STAGE/" ./
           git config user.name "github-actions[bot]"
@@ -144,4 +144,3 @@ jobs:
             git commit -m "Install Chelo project from Chelo.zip"
             git push origin HEAD:main
           fi
-          
