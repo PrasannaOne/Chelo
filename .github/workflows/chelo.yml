@@ -1,0 +1,147 @@
+name: Install Chelo project from Chelo.zip
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - Chelo.zip
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: chelo-archive-install-main
+  cancel-in-progress: false
+
+jobs:
+  validate-build-install:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install native and WebAssembly build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang lld rsync
+
+      - name: Validate archive paths and required project files
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f Chelo.zip || { echo 'Chelo.zip is missing from the repository root.'; exit 1; }
+          python3 - <<'PY'
+          import pathlib, stat, zipfile
+          archive = pathlib.Path('Chelo.zip')
+          with zipfile.ZipFile(archive) as z:
+              files = [i for i in z.infolist() if not i.is_dir()]
+              names = [i.filename.replace('\\', '/') for i in files]
+              if len(names) != len(set(names)):
+                  raise SystemExit('Archive contains duplicate paths.')
+              total = 0
+              for info, name in zip(files, names):
+                  p = pathlib.PurePosixPath(name)
+                  if p.is_absolute() or '..' in p.parts or '\x00' in name:
+                      raise SystemExit(f'Unsafe archive path: {name}')
+                  mode = info.external_attr >> 16
+                  if stat.S_ISLNK(mode):
+                      raise SystemExit(f'Symlinks are not permitted in archive: {name}')
+                  total += info.file_size
+              if total > 100 * 1024 * 1024:
+                  raise SystemExit('Uncompressed archive exceeds the 100 MiB safety limit.')
+              required = [
+                  'index.html', 'cpp/chelo_engine.cpp', 'cpp/chelo_engine.hpp',
+                  'cpp/uci_main.cpp', 'build_termux.sh', 'build_wasm.sh',
+                  'build-static.sh', 'run-m8-engine-tests.sh',
+                  'models/dual-nnue-v37.bin', 'tests/uci-gauntlet.js',
+                  'docs/CPP-M8-ENGINE-RELEASE.md',
+                  '.github/workflows/chelo.yml', '.github/workflows/pages.yml'
+              ]
+              missing = [name for name in required if name not in names]
+              if missing:
+                  raise SystemExit('Archive is incomplete: ' + ', '.join(missing))
+              forbidden = [n for n in names if n == '.env' or n.startswith('.env.') or n.startswith('.git/')]
+              if forbidden:
+                  raise SystemExit('Archive contains secret/Git metadata paths: ' + ', '.join(forbidden[:10]))
+          print(f'Archive validated: {len(files)} files, {archive.stat().st_size:,} compressed bytes, {total:,} uncompressed bytes.')
+          PY
+
+      - name: Extract archive into isolated staging directory
+        shell: bash
+        run: |
+          set -euo pipefail
+          STAGE="$RUNNER_TEMP/chelo-project"
+          mkdir -p "$STAGE"
+          python3 - "$STAGE" <<'PY'
+          import pathlib, sys, zipfile
+          root = pathlib.Path(sys.argv[1]).resolve()
+          with zipfile.ZipFile('Chelo.zip') as z:
+              for info in z.infolist():
+                  if info.is_dir():
+                      continue
+                  rel = pathlib.PurePosixPath(info.filename.replace('\\', '/'))
+                  out = (root / pathlib.Path(*rel.parts)).resolve()
+                  if root != out and root not in out.parents:
+                      raise SystemExit(f'Unsafe extraction path: {info.filename}')
+                  out.parent.mkdir(parents=True, exist_ok=True)
+                  out.write_bytes(z.read(info))
+          PY
+          test -f "$STAGE/index.html"
+          test -f "$STAGE/cpp/chelo_engine.cpp"
+          echo "CHELO_STAGE=$STAGE" >> "$GITHUB_ENV"
+
+      - name: Build and test native plus WebAssembly engine
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$CHELO_STAGE"
+          bash ./run-m8-engine-tests.sh
+          for file in src/engine/*.js src/nnue/*.js src/soul/*.js src/app/*.js src/worker/*.js src/uci/*.js tests/*.js; do
+            [ ! -f "$file" ] || node --check "$file"
+          done
+
+      - name: Prepare static site preview
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$CHELO_STAGE"
+          bash ./build-static.sh
+          test -f _site/index.html
+
+      - name: Upload validated static site preview
+        uses: actions/upload-artifact@v4
+        with:
+          name: chelo-validated-static-site
+          path: ${{ env.CHELO_STAGE }}/_site
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Replace repository project files with archive contents
+        shell: bash
+        run: |
+          set -euo pipefail
+          # The archive is the complete source of truth. Remove stale project files
+          # that are absent from it, while preserving Git internals and the uploaded archive.
+          rsync -a --delete \
+            --exclude='.git/' \
+            --exclude='Chelo.zip' \
+            "$CHELO_STAGE/" ./
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo 'Repository already matches Chelo.zip.'
+          else
+            git commit -m "Install Chelo project from Chelo.zip"
+            git push origin HEAD:main
+          fi
+          
