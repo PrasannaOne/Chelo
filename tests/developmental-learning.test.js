@@ -66,7 +66,7 @@ const app=fs.readFileSync(path.join(__dirname,'..','src/app/app.js'),'utf8');
 assert(app.includes('brain.chooseAdaptiveMove(chess)'), 'Production play must use the developmental move selector before invoking V37.');
 assert(app.includes('Threefold repetition (auto-claimed in casual play)'));
 assert(app.includes('50-move rule (auto-claimed in casual play)'));
-assert(app.includes('if(chess.game_over())')&&app.includes('const claim=claimableDrawReason()'));
+assert(app.includes('if(chess.game_over())')&&app.includes('updateClaimButton()'));
 
 const repetition=new Chess();
 for(let cycle=0;cycle<2;cycle++)for(const move of ['g1f3','g8f6','f3g1','f6g8'])assert(repetition.move(move));

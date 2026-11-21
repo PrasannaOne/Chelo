@@ -55,7 +55,7 @@ private:
   static constexpr i32 MATE_SCORE=29000, MATE_THRESHOLD=28000;
   Position pos;
   TTEntry tt[TT_SIZE]; u8 age; u64 nodes,qnodes,ttProbes,ttHits,ttCuts,betaCuts,firstMoveCuts,lmrReductions,lmrResearches,seeCalls,nodeLimit; u32 stopMs; i32 rootDepth; u64 startTick; bool aborted; Move rootIterationBest;
-  Move killers[MAX_PLY][2],counterMove[16][64]; i32 prevClass[MAX_PLY],prevTo[MAX_PLY],prev2Class[MAX_PLY],prev2To[MAX_PLY]; u64 pathHash[MAX_PLY]; u8 pathValid[MAX_PLY];
+  Move killers[MAX_PLY][2],counterMove[16][64]; i32 prevClass[MAX_PLY],prevTo[MAX_PLY],prev2Class[MAX_PLY],prev2To[MAX_PLY],evalStack[MAX_PLY]; u64 pathHash[MAX_PLY]; u8 pathValid[MAX_PLY];
   i16 history[2][64][64],contHistory[16][64][16][64],contHistory2[16][64][16][64];
   u64 gameHistory[512]; u16 gameHistoryCount;
   u64 repetitionKeys[1024]; u16 repetitionCounts[1024]; u8 repetitionUsed[1024];

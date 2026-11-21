@@ -1,5 +1,5 @@
-/* Chelo offline shell. Relative paths resolve under the deployed repository subpath. */
-const CACHE_NAME = 'chelo-shell-v38-256-nnue';
+/* Chelo offline shell. Network-first for app UI/scripts so Brave/Chrome always pick up updates immediately; cache-first for immutable models. */
+const CACHE_NAME = 'chelo-shell-v40-juiced-search-and-pacing';
 const ASSETS = [
   './', './index.html', './manifest.webmanifest', './assets/style.css', './assets/icon.svg', './assets/pieces.svg',
   './src/app/app.js', './src/engine/polyglot-random.js', './src/engine/chess.js',
@@ -22,30 +22,44 @@ self.addEventListener('activate', event => {
   })());
 });
 
+function isImmutableModel(pathname) {
+  return pathname.endsWith('.bin') || pathname.endsWith('base-v14-float32.json');
+}
+
 self.addEventListener('fetch', event => {
   const request = event.request;
-  if (request.method !== 'GET' || new URL(request.url).origin !== self.location.origin) return;
-  if (request.mode === 'navigate') {
+  if (request.method !== 'GET') return;
+  const url = new URL(request.url);
+  if (url.origin !== self.location.origin) return;
+
+  // Heavy immutable binary models: cache-first for instant loads.
+  if (isImmutableModel(url.pathname)) {
     event.respondWith((async () => {
+      const cached = await caches.match(request);
+      if (cached) return cached;
       try {
-        const fresh = await fetch(request);
-        if (fresh.ok) (await caches.open(CACHE_NAME)).put('./index.html', fresh.clone());
-        return fresh;
+        const response = await fetch(request);
+        if (response.ok) (await caches.open(CACHE_NAME)).put(request, response.clone());
+        return response;
       } catch {
-        return (await caches.match('./index.html')) || Response.error();
+        return Response.error();
       }
     })());
     return;
   }
+
+  // HTML, JS, CSS, SVG, WASM: network-first so Brave/Chrome always get fresh updates, falling back to cache offline.
   event.respondWith((async () => {
-    const cached = await caches.match(request);
-    if (cached) return cached;
     try {
-      const response = await fetch(request);
-      if (response.ok) (await caches.open(CACHE_NAME)).put(request, response.clone());
-      return response;
+      const fresh = await fetch(request, { cache: 'no-cache' });
+      if (fresh.ok) {
+        const cache = await caches.open(CACHE_NAME);
+        cache.put(request.mode === 'navigate' ? './index.html' : request, fresh.clone());
+      }
+      return fresh;
     } catch {
-      return Response.error();
+      const cached = await caches.match(request.mode === 'navigate' ? './index.html' : request);
+      return cached || Response.error();
     }
   })());
 });

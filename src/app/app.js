@@ -114,15 +114,21 @@
     mode='human';lastMove=chess.historyMoves().at(-1)||null;return true;
   }
   function updateSideLabels(){
-    $('whiteName').textContent='You';$('blackName').textContent=brain.data.petName;
-    $('whiteMode').textContent='· White';$('blackMode').textContent='· Black';
+    const topIsBlack=!flipped;
+    $('whiteName').textContent=topIsBlack?brain.data.petName:'You';
+    $('whiteMode').textContent=topIsBlack?'· Black':'· White';
+    $('blackName').textContent=topIsBlack?'You':brain.data.petName;
+    $('blackMode').textContent=topIsBlack?'· White':'· Black';
+    const topDot=document.querySelector('.board-topline .side-dot'),botDot=document.querySelector('.board-bottomline .side-dot');
+    if(topDot){topDot.classList.toggle('black-dot',topIsBlack);topDot.classList.toggle('white-dot',!topIsBlack);}
+    if(botDot){botDot.classList.toggle('white-dot',topIsBlack);botDot.classList.toggle('black-dot',!topIsBlack);}
   }
   function renderBoard(){
     const el=$('chessboard');el.innerHTML='';const board=chess.board();
     for(let displayRow=0;displayRow<8;displayRow++)for(let displayCol=0;displayCol<8;displayCol++){
       const row=flipped?7-displayRow:displayRow,col=flipped?7-displayCol:displayCol,rank=8-row,file='abcdefgh'[col],square=file+rank,piece=board[row][col];
       const cell=document.createElement('button');cell.type='button';cell.className=`square ${(row+col)%2===0?'light':'dark'}`;cell.setAttribute('role','gridcell');cell.setAttribute('aria-label',`${square}${piece?' '+piece.color+' '+piece.type:' empty'}`);cell.dataset.square=square;
-      if(selected===square)cell.classList.add('selected');if(lastMove&&(lastMove.from===square||lastMove.to===square))cell.classList.add('last-move');
+      if(selected===square)cell.classList.add('selected');if(lastMove&&(lastMove.from===square||lastMove.to===square))cell.classList.add('last-move');if(piece&&piece.type==='k'&&piece.color===chess.turn()&&chess.inCheck())cell.classList.add('in-check');
       const isTarget=selectedMoves.some(move=>move.to===square);if(isTarget){const dot=document.createElement('span');dot.className='move-dot';cell.appendChild(dot);if(piece)cell.classList.add('has-piece');}
       if(piece){const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 100 100');svg.setAttribute('class','piece-svg');svg.setAttribute('aria-hidden','true');const use=document.createElementNS('http://www.w3.org/2000/svg','use');use.setAttribute('href',`./assets/pieces.svg#${piece.color}${piece.type}`);svg.appendChild(use);cell.appendChild(svg);}
       if(displayCol===0){const coord=document.createElement('span');coord.className='coordinate rank';coord.textContent=rank;cell.appendChild(coord);}
@@ -145,7 +151,15 @@
   }
   async function makePetMove(){
     if(finished||mode!=='human')return;
+    const thinkStart=performance.now();
     const search=await requestAIMove();if(finished||mode!=='human')return;
+    const plyCount=chess.historyMoves().length,legalCount=chess.moves({skipSan:true}).length;
+    const baseDelay=legalCount<=1?420:search?.book?520:search?.developmental?650:plyCount<8?780:1150;
+    const jitter=legalCount<=1?220:search?.book?360:search?.developmental?550:1350;
+    const targetMs=baseDelay+Math.floor(Math.random()*jitter);
+    const waitMs=Math.max(0,targetMs-(performance.now()-thinkStart));
+    if(waitMs>30)await new Promise(r=>setTimeout(r,waitMs));
+    if(finished||mode!=='human')return;
     if(!search?.ok||!search.move){busy=false;$('gameMessage').textContent=search?.error||'Chelo could not find a legal move.';$('thinkingLabel').textContent='YOUR MOVE';$('turnState').textContent='Your turn';toast('Chelo could not complete its move.');return;}
     const fenBefore=chess.fen(),move=chess.move(search.move);
     if(!move){busy=false;$('gameMessage').textContent='The search returned an invalid move. The board was not changed.';toast('Chelo returned an invalid move.');return;}
@@ -154,7 +168,12 @@
     if(!checkGameEnd()){$('thinkingLabel').textContent='YOUR MOVE';$('turnState').textContent='Your turn';$('gameMessage').textContent='Your move.';}
   }
 
-  function updateClaimButton(){const button=$('claimDrawBtn');if(button)button.hidden=finished||!chess.canClaimDraw();}
+  function updateClaimButton(){
+    const button=$('claimDrawBtn');if(!button)return;
+    const can= !finished&&chess.canClaimDraw();
+    button.hidden=!can;
+    if(can)button.textContent=chess.s?.half>=100?'Claim draw · 50-move rule':'Claim draw · Threefold repetition';
+  }
   function endReason(){
     if(chess.inCheckmate())return 'Checkmate';
     if(chess.inStalemate())return 'Stalemate';
@@ -196,8 +215,7 @@
       const result=chess.result(),outcome=result==='b'?'win':result==='w'?'loss':'draw';
       finishMatch(outcome,endReason());return true;
     }
-    const claim=claimableDrawReason();
-    if(claim){finishMatch('draw',claim);return true;}
+    updateClaimButton();
     return false;
   }
   function updateMoveList(){
@@ -210,7 +228,7 @@
     const data=brain.data;let avatar='🐣';if(data.gen>=2&&data.gen<4)avatar='🐥';else if(data.gen>=4&&data.gen<8)avatar='🦉';else if(data.gen>=8)avatar='🐉';
     $('petAvatar').textContent=avatar;$('petName').textContent=data.petName;$('petMood').textContent=brain.developmentalProfile().label;$('drawerPersonality').textContent=brain.personality();
     $('growthValue').textContent=brain.growthLevel();$('masteryValue').textContent=brain.masteryTier();$('arenaRankValue').textContent='Unranked';$('recordValue').textContent=`${data.wins} · ${data.losses} · ${data.draws}`;
-    $('challengeValue').textContent=`${data.elo||100} · Growing`; $('yourPetHandle').textContent=data.handle||'Not registered';updateSideLabels();
+    const r=data.elo||100,tier=r>=2200?'Grandmaster':r>=1850?'Master':r>=1450?'Expert':r>=1000?'Club':r>=400?'Growing':'Hatchling';$('challengeValue').textContent=`${r} · ${tier}`; $('yourPetHandle').textContent=data.handle||'Not registered';updateSideLabels();
   }
   function updateBrainUI(){
     if(!brain)return;const data=brain.data,active={id:activePetId,data:brain.compactData()},pets=verifiedPlan==='pro'?cheloPets.filter(p=>p.id!==activePetId).concat([active]):[active];
@@ -224,7 +242,7 @@
     for(const item of memories){const li=document.createElement('div'),dot=document.createElement('span'),copy=document.createElement('div'),strong=document.createElement('strong'),small=document.createElement('small');li.className='memory-item';dot.className='memory-dot';copy.className='memory-copy';strong.textContent=memoryText(item);small.textContent=`${item.plies||0} half-moves · ${item.tactical||0} tactical moments`;copy.append(strong,small);li.append(dot,copy);list.appendChild(li);}
     updateMoveList();
   }
-  function memoryText(item){const labels={'battle-win':'Won a trainer match','tactical-win':'Won with tactical moments','battle-loss':'Turned a defeat into a lesson','tactical-lesson':'A tactical loss became a lesson','draw':'Drew the match','endurance-draw':'Held on through a long draw'};return labels[item.kind]||'Saved a chess memory';}
+  function memoryText(item){const m=Math.max(1,Math.round((Number(item.plies)||2)/2)),t=Number(item.tactical)||0;const labels={'battle-win':`Won a ${m}-move trainer match`,'tactical-win':`Found ${t>1?t+' tactical strikes':'a sharp tactical win'} in ${m} moves`,'battle-loss':`Turned a ${m}-move defeat into a lesson`,'tactical-lesson':`Studied a ${m}-move tactical defeat`,'draw':`Held a ${m}-move draw`,'endurance-draw':`Survived a ${m}-move endgame draw`};return labels[item.kind]||`Saved a ${m}-move chess memory`;}
   function startNextMatch(){
     chess.load(START_FEN);brain.resetPending();clearActiveMatch();mode='human';selected=null;selectedMoves=[];lastMove=null;busy=false;finished=false;
     $('thinkingLabel').textContent='YOUR MOVE';$('turnState').textContent='Your turn';$('gameMessage').textContent='';
@@ -384,7 +402,7 @@
     $('shareBtn').addEventListener('click',async()=>{const data={title:'Chelo',text:'Meet Chelo, a little chess companion that learns as you play.',url:location.href};try{if(navigator.share)await navigator.share(data);else if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(data.url);toast('Chelo link copied.');}else toast('Sharing is not available on this device.');}catch(error){if(error.name!=='AbortError')toast('Could not open sharing.');}});
     $('nextMatchBtn').addEventListener('click',()=>{$('matchResultDialog').close();startNextMatch();});
     $('claimDrawBtn').addEventListener('click',()=>{if(!chess.canClaimDraw()||finished||mode!=='human')return;const reason=chess.s?.half>=100?'50-move rule claimed':'Threefold repetition claimed';finishMatch('draw',reason);});
-    $('flipBoardBtn').addEventListener('click',()=>{flipped=!flipped;renderBoard();toast('Board orientation changed.');});
+    $('flipBoardBtn').addEventListener('click',()=>{flipped=!flipped;updateSideLabels();renderBoard();toast('Board orientation changed.');});
     $('exportBtn').addEventListener('click',exportChelo);$('importBtn').addEventListener('click',()=>$('importFile').click());
     $('importFile').addEventListener('change',event=>{const file=event.target.files?.[0];if(file)importChelo(file);event.target.value='';});
     $('createPetBtn').addEventListener('click',adoptPet);$('saveApiBaseBtn').addEventListener('click',validateApiBase);$('createAccountBtn').addEventListener('click',createTrainerAccount);
@@ -397,7 +415,7 @@
     document.addEventListener('pointerup',event=>{if(!pointerStart)return;const dx=event.clientX-pointerStart.x,dy=event.clientY-pointerStart.y;if(Math.abs(dx)>75&&Math.abs(dy)<90){if(dx>0&&pointerStart.x<26&&!$('workspaceDialog').open&&!$('matchResultDialog').open)showDrawer();else if(dx<0&&$('sideDrawer').classList.contains('open'))closeDrawer();}pointerStart=null;},{passive:true});
     document.addEventListener('keydown',event=>{if(event.key==='Escape'){closeDrawer();$('overflowMenu').hidden=true;$('overflowBtn').setAttribute('aria-expanded','false');}});
     $('promotionDialog').addEventListener('close',()=>{const choice=$('promotionDialog').returnValue;if(choice&&choice!=='cancel'&&pendingPromotion)playHuman(pendingPromotion.from,pendingPromotion.to,choice);pendingPromotion=null;});
-    if(apiBase())updateSyncStatus();if('serviceWorker'in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('./sw.js').catch(error=>console.warn('Offline installation is unavailable.',error));
+    if(apiBase())updateSyncStatus();if('serviceWorker'in navigator&&location.protocol!=='file:'){let swRefreshing=false;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!swRefreshing){swRefreshing=true;location.reload();}});navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(reg=>{reg.update().catch(()=>{});return reg;}).catch(error=>console.warn('Offline installation is unavailable.',error));}
   }
   window.addEventListener('DOMContentLoaded',init);
 })();
