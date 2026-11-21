@@ -3,7 +3,7 @@ import {PlayerSaveDO} from '../player-save-do.mjs';
 
 function crc32(bytes){let crc=0xFFFFFFFF;for(const byte of bytes){crc^=byte;for(let bit=0;bit<8;bit++)crc=(crc&1)?(0xEDB88320^(crc>>>1)):(crc>>>1);}return ((crc^0xFFFFFFFF)>>>0).toString(16).padStart(8,'0');}
 function makeDoc(plan,count){
-  const bond=Buffer.alloc(69);bond[0]=1;bond[1]=8;const arena=Buffer.alloc(134);arena[0]=2;arena[1]=8;
+  const bond=Buffer.alloc(517);bond[0]=1;bond[1]=8;const arena=Buffer.alloc(1030);arena[0]=2;arena[1]=8;
   const player={id:'player-1',handle:'trainer_1',settings:{},activeMatch:{version:4,mode:'human',movesPacked:''}};
   const pets=Array.from({length:count},(_,i)=>({id:`pet-${i+1}`,data:{v:16,i:[`Pet ${i+1}`,`pet_${i+1}`,1,0,0,0,0,0],t:[50,50,50],dl:{bond:bond.toString('base64'),arena:arena.toString('base64')},m:[],u:[]}}));
   const payload={format:'CHELO',version:1,plan,player,pets};

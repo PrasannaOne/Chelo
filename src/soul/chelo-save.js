@@ -54,7 +54,7 @@
   }
   function validateAdapter(encoded,rank){
     if(typeof encoded!=='string'||!/^[A-Za-z0-9+/]+={0,2}$/.test(encoded))return false;
-    try{const raw=atob(encoded);return raw.length===4+65*rank&&raw.charCodeAt(0)===rank&&raw.charCodeAt(1)<=14;}catch{return false;}
+    try{const raw=atob(encoded);return raw.length===4+513*rank&&raw.charCodeAt(0)===rank&&raw.charCodeAt(1)<=14;}catch{return false;}
   }
   const byteLength = value => encoder.encode(JSON.stringify(value)).byteLength;
 

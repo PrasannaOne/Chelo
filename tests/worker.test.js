@@ -6,13 +6,13 @@ const root=path.resolve(__dirname,'..');
 const sent=[];let messageHandler=null;
 const checkpoint=JSON.parse(fs.readFileSync(path.join(root,'models/base-v14-float32.json'),'utf8'));
 const book=fs.readFileSync(path.join(root,'models','polyglot-book.bin'));
-const dualNnue=fs.readFileSync(path.join(root,'models/dual-nnue-v37.bin'));
+const dualNnue=fs.readFileSync(path.join(root,'models/dual-nnue-v38-256.bin'));
 const cppWasm=fs.readFileSync(path.join(root,'wasm/chelo.wasm'));
 const context={TextEncoder,Date,Math,console,WebAssembly,performance,Uint8Array,Uint16Array,Uint32Array,Float32Array,Int8Array,Int16Array,DataView,ArrayBuffer,SharedArrayBuffer,Atomics,Map,Set,Error,Number,Object,String,JSON,RegExp,Promise,atob,btoa,crypto,
   postMessage:message=>sent.push(message),
   addEventListener:(type,handler)=>{if(type==='message')messageHandler=handler;},
   importScripts:(...files)=>{for(const file of files)vm.runInContext(fs.readFileSync(path.resolve(root,'src/worker',file),'utf8'),context,{filename:file});},
-  fetch:async url=>String(url).includes('models/base-v14-float32.json')?({ok:true,json:async()=>checkpoint}):String(url).includes('models/dual-nnue-v37.bin')?({ok:true,arrayBuffer:async()=>dualNnue.buffer.slice(dualNnue.byteOffset,dualNnue.byteOffset+dualNnue.byteLength)}):String(url).includes('wasm/chelo.wasm')?({ok:true,arrayBuffer:async()=>cppWasm.buffer.slice(cppWasm.byteOffset,cppWasm.byteOffset+cppWasm.byteLength)}):({ok:true,arrayBuffer:async()=>book.buffer.slice(book.byteOffset,book.byteOffset+book.byteLength)})
+  fetch:async url=>String(url).includes('models/base-v14-float32.json')?({ok:true,json:async()=>checkpoint}):String(url).includes('models/dual-nnue-v38-256.bin')?({ok:true,arrayBuffer:async()=>dualNnue.buffer.slice(dualNnue.byteOffset,dualNnue.byteOffset+dualNnue.byteLength)}):String(url).includes('wasm/chelo.wasm')?({ok:true,arrayBuffer:async()=>cppWasm.buffer.slice(cppWasm.byteOffset,cppWasm.byteOffset+cppWasm.byteLength)}):({ok:true,arrayBuffer:async()=>book.buffer.slice(book.byteOffset,book.byteOffset+book.byteLength)})
 };
 context.self=context;context.globalThis=context;vm.createContext(context);
 (async()=>{
@@ -37,12 +37,12 @@ context.self=context;context.globalThis=context;vm.createContext(context);
   await messageHandler({data:{id:12,fen:hardFen,brainData:{},plan:'free',mode:'rated',maxTimeMs:999999,maxNodes:999999,v14Mode:true,baseVersion:checkpoint.baseVersion}});
   if(!sent[4].ok||!sent[5].ok||sent[4].nodes!==30000||sent[5].nodes!==30000||sent[4].move!==sent[5].move||sent[4].score!==sent[5].score||!sent[4].dualPerspectiveNnue||!sent[5].dualPerspectiveNnue)throw new Error('Rated fairness mode was not deterministic at its fixed 30,000-node budget.');
 
-  await messageHandler({data:{id:15,fen:hardFen,brainData:{},plan:'free',mode:'adaptive',maxTimeMs:10000,maxNodes:900,maxDepth:4,v14Mode:true,baseVersion:checkpoint.baseVersion}});
+  await messageHandler({data:{id:15,fen:hardFen,brainData:{},plan:'free',mode:'adaptive',developmentalGatePassed:true,maxTimeMs:10000,maxNodes:900,maxDepth:4,v14Mode:true,baseVersion:checkpoint.baseVersion}});
   if(!sent[6].ok||!sent[6].cppEngine||sent[6].engine!=='cpp-wasm'||sent[6].engineFallback||sent[6].nodes!==900||sent[6].maxNodes!==900||sent[6].maxTimeMs!==10000||sent[6].depth>4)throw new Error(`Adaptive companion did not use the canonical C++/V37 engine within its personalised node budget: ${JSON.stringify(sent[6])}`);
 
-  await messageHandler({data:{id:16,fen:'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',brainData:{},plan:'free',mode:'adaptive',maxTimeMs:65,maxNodes:500,maxDepth:1,v14Mode:true,baseVersion:checkpoint.baseVersion}});
+  await messageHandler({data:{id:16,fen:'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',brainData:{},plan:'free',mode:'adaptive',developmentalGatePassed:true,maxTimeMs:65,maxNodes:500,maxDepth:1,v14Mode:true,baseVersion:checkpoint.baseVersion}});
   if(!sent[7].ok||sent[7].book||!sent[7].cppEngine||sent[7].engine!=='cpp-wasm'||!sent[7].move||sent[7].nodes>500||sent[7].depth>1)throw new Error(`An uncalibrated hatchling must not lean on perfect opening-book moves: ${JSON.stringify(sent[7])}`);
-  await messageHandler({data:{id:18,fen:'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',brainData:{elo:800},plan:'free',mode:'adaptive',maxTimeMs:10000,maxNodes:900,maxDepth:4,v14Mode:true,baseVersion:checkpoint.baseVersion}});
+  await messageHandler({data:{id:18,fen:'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',brainData:{elo:1000,games:40},plan:'free',mode:'adaptive',developmentalGatePassed:true,maxTimeMs:10000,maxNodes:900,maxDepth:4,v14Mode:true,baseVersion:checkpoint.baseVersion}});
   if(!sent[8].ok||!sent[8].book||sent[8].engine!=='polyglot-book'||!sent[8].move)throw new Error(`A sufficiently calibrated companion should use the verified Polyglot opening book: ${JSON.stringify(sent[8])}`);
 
   await messageHandler({data:{id:13,fen:hardFen,brainData:{},plan:'free',mode:'apex',maxTimeMs:10000,maxNodes:1000,v14Mode:true,baseVersion:checkpoint.baseVersion}});
@@ -50,7 +50,9 @@ context.self=context;context.globalThis=context;vm.createContext(context);
 
   await messageHandler({data:{id:14,fen:hardFen,brainData:{},plan:'free',mode:'legacy',useCppEngine:true,maxTimeMs:10000,maxNodes:1000,maxDepth:4,v14Mode:true,baseVersion:checkpoint.baseVersion}});
   if(!sent[10].ok||!sent[10].cppEngine||sent[10].depth!==4||!sent[10].move)throw new Error(`C++ WASM Worker bridge failed: ${JSON.stringify(sent[9])}`);
-  await messageHandler({data:{id:17,fen:hardFen,brainData:{},plan:'free',mode:'adaptive',maxTimeMs:10,maxNodes:10000000,maxDepth:32,v14Mode:true,baseVersion:checkpoint.baseVersion}});
+  await messageHandler({data:{id:17,fen:hardFen,brainData:{},plan:'free',mode:'adaptive',developmentalGatePassed:true,maxTimeMs:10,maxNodes:10000000,maxDepth:32,v14Mode:true,baseVersion:checkpoint.baseVersion}});
   if(!sent[11].ok||!sent[11].cppEngine||sent[11].nodes>=10000000||sent[11].maxTimeMs!==10)throw new Error(`Adaptive C++ search did not respect the time cap as well as the node ceiling: ${JSON.stringify(sent[10])}`);
-  console.log(`AI Worker M6 tests passed: book hit ${sent[0].move}; exact 900-node C++/V37 adaptive budget; hatchling book lock and calibrated Polyglot opening book; ranked JS fairness; shared SAB TT helper; legacy C++ time search and combined time ceiling passed.`);
+  await messageHandler({data:{id:19,fen:'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',brainData:{},plan:'free',mode:'adaptive',maxTimeMs:10000,maxNodes:100000,maxDepth:8,v14Mode:true,baseVersion:checkpoint.baseVersion}});
+  if(!sent[12].ok||sent[12].engine!=='developmental-companion'||sent[12].nodes!==0||sent[12].depth!==0)throw new Error(`The worker itself must enforce move-only hatchling play: ${JSON.stringify(sent[12])}`);
+  console.log(`AI Worker M6 tests passed: book hit ${sent[0].move}; exact 900-node C++/V37 adaptive budget; worker-enforced legal-only hatchling; hatchling book lock and calibrated Polyglot opening book; ranked JS fairness; shared SAB TT helper; legacy C++ time search and combined time ceiling passed.`);
 })().catch(error=>{console.error(error);process.exitCode=1;});

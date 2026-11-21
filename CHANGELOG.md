@@ -1,3 +1,11 @@
+## M10 - Bond LoRA learning stabilisation
+- Replaced noisy game-outcome evaluator gradients with same-parent-FEN tactical counterfactual pairs: material-winning captures/promotions versus moves allowing an immediate legal recapture.
+- Added hard-contrast mining, importance-weighted bounded Int8 updates, weight decay, parent-position validation split and update-scale backoff/rejection.
+- Connected accepted Bond adapter deltas to early developmental candidate ranking; V37 remains frozen and its full search still phases in gradually.
+- Corrected post-match messaging so only accepted coefficient updates are labelled as adaptation; validation-rejected updates are reported honestly.
+- Added three independent 50-game training runs at 5/10/25/50 milestones, held-out pair-ranking measurements, exact `.chelo` adapter round-trip checks and trained-adapter native/WASM parity coverage.
+- Held-out tactical margin improved in all three runs at game 50. This is a one-ply tactical preference proxy, not Elo or a head-to-head strength claim. See `docs/BOND-LORA-LEARNING.md`.
+
 ## M8 - Native search correctness and efficiency hardening
 
 - Bounded in-check quiescence to the Stage 3.9 safety horizon and restored the original five-ply quiescence start.
@@ -20,6 +28,15 @@
 - V37 weights and `.chelo` save format remain unchanged.
 
 # Changelog
+
+## M9 - True Hatchling Progression + Draw Guardrails
+- Fresh pets now choose uniformly from legal moves only; V37, C++ search, policy evaluation and opening-book selection are bypassed for the first game.
+- Introduced gradual developmental phases using random legal moves, basic material awareness, immediate piece-safety feedback and position/move memories.
+- Began blending V37 search only after 11 completed trainer games; full search is reached after sustained play. Polyglot opening-book selection is restricted to pets with at least 40 completed games and a high internal challenge estimate.
+- Connected immediate recapture feedback to exact position/move memory. Bond now learns from same-position tactical contrasts with held-out validation; game outcomes no longer directly supervise evaluator weights.
+- Added casual automatic claims for threefold repetition and the 50-move rule; fivefold repetition and the 75-move rule remain automatic in the chess rules core, with checkmate precedence.
+- Added dedicated developmental-learning and draw-guardrail regression tests; bumped the service-worker cache version.
+
 
 ## M6 - C++/V37-first Companion + Episodic Personality
 - Made C++/WASM + pinned V37 + per-pet Bond/Arena adapters the default for local adaptive games.

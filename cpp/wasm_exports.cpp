@@ -2,10 +2,10 @@
 using namespace chelo;
 extern "C" u64 chelo_host_now_ms();
 static Engine engine;
-static u8 modelBuffer[49368];
+static u8 modelBuffer[394776];
 static u8 kpkBuffer[24576];
 static char fenBuffer[128];
-static u8 bondBuffer[69],arenaBuffer[134];
+static u8 bondBuffer[517],arenaBuffer[1030];
 static SearchResult result;
 static char moveText[6];
 extern "C" {
@@ -13,10 +13,10 @@ __attribute__((visibility("default"))) u32 chelo_abi_version(){return 1;}
 __attribute__((visibility("default"))) u8* chelo_model_buffer(){return modelBuffer;}
 __attribute__((visibility("default"))) u8* chelo_kpk_buffer(){return kpkBuffer;}
 __attribute__((visibility("default"))) char* chelo_fen_buffer(){return fenBuffer;}
-__attribute__((visibility("default"))) u32 chelo_model_buffer_size(){return 49368;}
+__attribute__((visibility("default"))) u32 chelo_model_buffer_size(){return 394776;}
 __attribute__((visibility("default"))) u8* chelo_adapter_buffer(u32 which){return which?arenaBuffer:bondBuffer;}
-__attribute__((visibility("default"))) u32 chelo_adapter_buffer_size(u32 which){return which?134:69;}
-__attribute__((visibility("default"))) i32 chelo_load_model(){return engine.loadModel(modelBuffer,49368)?1:0;}
+__attribute__((visibility("default"))) u32 chelo_adapter_buffer_size(u32 which){return which?1030:517;}
+__attribute__((visibility("default"))) i32 chelo_load_model(){return engine.loadModel(modelBuffer,394776)?1:0;}
 __attribute__((visibility("default"))) i32 chelo_load_kpk(){return engine.loadKpk(kpkBuffer,24576)?1:0;}
 __attribute__((visibility("default"))) i32 chelo_load_adapter(u32 which,u32 bytes){return engine.setAdapter(which,which?arenaBuffer:bondBuffer,bytes)?1:0;}
 __attribute__((visibility("default"))) i32 chelo_set_fen(const char* fen){return engine.setFen(fen)?1:0;}

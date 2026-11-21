@@ -9,7 +9,7 @@ const context={window:root,self:root,globalThis:root,TextEncoder,TextDecoder,Uin
 vm.createContext(context);
 for(const file of ['src/engine/polyglot-random.js','src/engine/chess.js','src/engine/endgame-kpk.js','src/engine/fast-search.js','src/nnue/dual-nnue.js','src/soul/chelo-save.js','src/soul/brain.js'])vm.runInContext(fs.readFileSync(path.join(base,file),'utf8'),context,{filename:file});
 const checkpoint=JSON.parse(fs.readFileSync(path.join(base,'models/base-v14-float32.json'),'utf8'));
-const bytes=fs.readFileSync(path.join(base,'models/dual-nnue-v37.bin'));
+const bytes=fs.readFileSync(path.join(base,'models/dual-nnue-v38-256.bin'));
 const model=root.CheloDualNNUE.parse(bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength));
 root.CheloDualNNUE.model=model;
 const Save=root.CheloSave,results=[];

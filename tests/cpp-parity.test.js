@@ -13,7 +13,7 @@ const context={window:root,self:root,globalThis:root,TextEncoder,TextDecoder,Uin
 vm.createContext(context);
 for(const file of ['src/engine/polyglot-random.js','src/engine/chess.js','src/engine/endgame-kpk.js','src/engine/fast-search.js','src/nnue/dual-nnue.js','src/soul/brain.js'])vm.runInContext(fs.readFileSync(path.join(rootDir,file),'utf8'),context,{filename:file});
 const checkpoint=JSON.parse(fs.readFileSync(path.join(rootDir,'models/base-v14-float32.json'),'utf8'));
-const raw=fs.readFileSync(path.join(rootDir,'models/dual-nnue-v37.bin'));
+const raw=fs.readFileSync(path.join(rootDir,'models/dual-nnue-v38-256.bin'));
 const model=root.CheloDualNNUE.parse(raw.buffer.slice(raw.byteOffset,raw.byteOffset+raw.byteLength));
 root.CheloDualNNUE.model=model;
 const brain=new root.CheloBrain('cpp-parity',{persist:false,v14Mode:true,baseModel:checkpoint.tensors,baseVersion:checkpoint.baseVersion});
@@ -22,7 +22,7 @@ Object.assign(brain.data.dualLora.bond,{shift:4,steps:21});
 brain.data.dualLora.bond.aW[0]=12;brain.data.dualLora.bond.aB[1]=-7;brain.data.dualLora.bond.b[0]=3;
 Object.assign(brain.data.dualLora.arena,{shift:4,steps:8});
 brain.data.dualLora.arena.aW[0]=-5;brain.data.dualLora.arena.aW[1]=7;brain.data.dualLora.arena.aB[62]=9;brain.data.dualLora.arena.b[0]=4;brain.data.dualLora.arena.b[1]=2;
-function encodeAdapter(a,rank){const b=Buffer.alloc(4+65*rank);b[0]=rank;b[1]=a.shift;b.writeUInt16LE(a.steps&65535,2);let p=4;for(const x of a.aW)b.writeInt8(x,p++);for(const x of a.aB)b.writeInt8(x,p++);for(const x of a.b)b.writeInt8(x,p++);return b;}
+function encodeAdapter(a,rank){const b=Buffer.alloc(4+513*rank);b[0]=rank;b[1]=a.shift;b.writeUInt16LE(a.steps&65535,2);let p=4;for(const x of a.aW)b.writeInt8(x,p++);for(const x of a.aB)b.writeInt8(x,p++);for(const x of a.b)b.writeInt8(x,p++);return b;}
 const tmp=fs.mkdtempSync(path.join(os.tmpdir(),'chelo-cpp-'));
 const bond=path.join(tmp,'bond.bin'),arena=path.join(tmp,'arena.bin');fs.writeFileSync(bond,encodeAdapter(brain.data.dualLora.bond,1));fs.writeFileSync(arena,encodeAdapter(brain.data.dualLora.arena,2));
 const fens=[

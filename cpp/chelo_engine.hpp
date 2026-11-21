@@ -59,9 +59,9 @@ private:
   i16 history[2][64][64],contHistory[16][64][16][64],contHistory2[16][64][16][64];
   u64 gameHistory[512]; u16 gameHistoryCount;
   u64 repetitionKeys[1024]; u16 repetitionCounts[1024]; u8 repetitionUsed[1024];
-  i16 accW[MAX_PLY+1][32],accB[MAX_PLY+1][32]; bool accReady;
-  u8 model[49368]; bool modelReady; u8 kpk[24576]; bool kpkReady;
-  i8 adapterAW[2][64],adapterAB[2][64],adapterB[2][2]; u8 adapterRank[2],adapterShift[2];
+  i16 accW[MAX_PLY+1][256],accB[MAX_PLY+1][256]; bool accReady;
+  u8 model[394776]; bool modelReady; u8 kpk[24576]; bool kpkReady;
+  i8 adapterAW[2][512],adapterAB[2][512],adapterB[2][2]; u8 adapterRank[2],adapterShift[2];
   char fenBuffer[128];
   static u64 bit(i32 s){return 1ull<<s;} static i32 poplsb(u64& b); static i32 pieceColor(i32 p); static i32 pieceType(i32 p);
   void rebuild(); void setSquare(i32 sq,i32 piece); bool attacked(i32 sq,i32 by) const; bool attackedReference(i32 sq,i32 by) const; bool inCheck(i32 side) const;

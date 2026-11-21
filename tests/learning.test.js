@@ -10,7 +10,7 @@ const base=path.resolve(__dirname,'..');
 for(const file of ['src/engine/polyglot-random.js','src/engine/chess.js','src/engine/endgame-kpk.js','src/engine/fast-search.js','src/nnue/dual-nnue.js','src/soul/chelo-save.js','src/soul/brain.js'])vm.runInContext(fs.readFileSync(path.join(base,file),'utf8'),context,{filename:file});
 const Chess=root.ChessCore,Brain=root.CheloBrain,Save=root.CheloSave;
 const checkpoint=JSON.parse(fs.readFileSync(path.join(base,'models/base-v14-float32.json'),'utf8'));
-const raw=fs.readFileSync(path.join(base,'models/dual-nnue-v37.bin'));
+const raw=fs.readFileSync(path.join(base,'models/dual-nnue-v38-256.bin'));
 const model=root.CheloDualNNUE.parse(raw.buffer.slice(raw.byteOffset,raw.byteOffset+raw.byteLength));root.CheloDualNNUE.model=model;
 const make=(plan='free')=>new Brain('learning',{persist:false,v14Mode:true,baseModel:checkpoint.tensors,baseVersion:checkpoint.baseVersion,plan});
 
@@ -29,17 +29,22 @@ assert(advanced.maxNodes>starter.maxNodes&&advanced.maxTimeMs>starter.maxTimeMs,
 const advancedRating=brain.data.elo;brain.updateAdaptiveChallenge('win');
 assert(brain.data.elo<advancedRating,'Challenge should ease back after Chelo wins.');
 
-assert.equal(model.byteLength,49368,'The shared V37 model must remain frozen.');
+assert.equal(model.byteLength,394776,'The shared V37 model must remain frozen.');
 
 // Confirmed trainer games update Bond only, using the same Int8 adapter tensors the C++ engine reads.
-const position='rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1';
-brain.observePetMove(position,'e7e5',{side:'b'},1);
+const position='rnbqkbnr/p1ppp1pp/5p2/1p6/2P2P2/8/PP1PP1PP/RNBQKBNR b KQkq - 0 3';
+const tacticalPairs=brain.tacticalMovePairs(position,'b');
+assert(tacticalPairs.positive.length>0&&tacticalPairs.negative.length>0,'Training fixture must contain positive and negative legal alternatives from the same position.');
+const selectedPositive=tacticalPairs.positive[0],selectedNegative=tacticalPairs.negative[0];
+const petScore=fen=>{const state=brain.dualNnueState(fen);return state?(state.side===1?state.score:-state.score):0;};
+const marginBefore=petScore(selectedPositive.after)-petScore(selectedNegative.after);
+const teachingMove=new Chess(position).moves({verbose:true,skipSan:true})[0];
+brain.observePetMove(position,teachingMove.uci,{side:'b'},1);
 const bondBefore=Array.from(brain.data.dualLora.bond.aW);
-const scoreBefore=brain.dualNnueState(position).score;
 const bondReport=brain.reinforce('win');
-const scoreAfter=brain.dualNnueState(position).score;
-assert(Math.abs(209-scoreAfter)<Math.abs(209-scoreBefore),'Bond training must move the V37 evaluation closer to the confirmed pet-win target on this controlled fixture.');
-assert(bondReport.updatedPositions>0&&bondReport.updatedCoefficients>0,'Match report must count real engine-consumed Bond coefficient changes.');
+const marginAfter=petScore(selectedPositive.after)-petScore(selectedNegative.after);
+assert(marginAfter>marginBefore,'Bond training must rank a clear positive tactical alternative above an immediate-hang alternative more strongly.');
+assert(bondReport.updatedPositions>0&&bondReport.updatedCoefficients>0&&bondReport.trainedPairs>0,'Match report must count real engine-consumed Bond coefficient changes from same-position contrasts.');
 assert(brain.data.dualLora.bond.steps>0,'A confirmed trainer match must train Bond.');
 assert.notDeepEqual(Array.from(brain.data.dualLora.bond.aW),bondBefore,'Bond Int8 coefficients should adapt after outcome feedback.');
 assert(brain.latestMemory(),'A completed trainer game must create a readable episodic memory.');

@@ -2,11 +2,11 @@
 importScripts('../engine/polyglot-random.js', '../engine/chess.js', '../engine/endgame-kpk.js', '../engine/fast-search.js', '../nnue/dual-nnue.js', '../soul/brain.js');
 const BASE_URL = '../../models/base-v14-float32.json';
 const BOOK_URL = '../../models/polyglot-book.bin';
-const DUAL_NNUE_URL = '../../models/dual-nnue-v37.bin';
+const DUAL_NNUE_URL = '../../models/dual-nnue-v38-256.bin';
 const CPP_WASM_URL = '../../wasm/chelo.wasm';
 let dualModelBuffer = null;
 let cppWasmPromise = null;
-const DUAL_NNUE_SHA256 = 'f9ffe3f0dc641c93be26f871086182a82291411a4e4b59c073fcc7c8bfc4022e';
+const DUAL_NNUE_SHA256 = 'e14650d8f4ff79eb0197ab06fa7f6f370d53cc019289fde6f103e367db257826';
 const PET_BASE_VERSION = 'v13-f32-policy-2026-11-19-seed-20261119';
 const SMP_MAX_WORKERS = 4;
 const SMP_GLOBAL_STOP = 0;
@@ -55,7 +55,7 @@ async function loadCppEngine(){
     if(e.__wasm_call_ctors)e.__wasm_call_ctors();
     if(e.chelo_abi_version()!==1)throw new Error('Chelo C++ WASM ABI mismatch.');
     const memory=e.memory, modelPtr=e.chelo_model_buffer();
-    new Uint8Array(memory.buffer,modelPtr,e.chelo_model_buffer_size()).set(new Uint8Array(dualModelBuffer));
+    if(e.chelo_model_buffer_size()!==dualModelBuffer.byteLength)throw new Error('WASM binary requires rebuild for 256-neuron V38 model.');new Uint8Array(memory.buffer,modelPtr,e.chelo_model_buffer_size()).set(new Uint8Array(dualModelBuffer));
     if(!e.chelo_load_model())throw new Error('C++ engine rejected the pinned V37 model.');
     const kpk=self.CHESSLING_KPK_WDL;
     if(kpk&&kpk.length===24576){new Uint8Array(memory.buffer,e.chelo_kpk_buffer(),24576).set(kpk);e.chelo_load_kpk();}
@@ -64,10 +64,10 @@ async function loadCppEngine(){
   return cppWasmPromise;
 }
 function encodeCppAdapter(adapter,rank){
-  const bytes=new Uint8Array(4+65*rank);bytes[0]=rank;bytes[1]=Math.max(0,Math.min(14,Number(adapter?.shift??8)|0));
+  const bytes=new Uint8Array(4+513*rank);bytes[0]=rank;bytes[1]=Math.max(0,Math.min(14,Number(adapter?.shift??8)|0));
   const aw=adapter?.aW||[],ab=adapter?.aB||[],b=adapter?.b||[];let at=4;
-  for(let i=0;i<32*rank;i++)bytes[at++]=(Number(aw[i])||0)&255;
-  for(let i=0;i<32*rank;i++)bytes[at++]=(Number(ab[i])||0)&255;
+  for(let i=0;i<256*rank;i++)bytes[at++]=(Number(aw[i])||0)&255;
+  for(let i=0;i<256*rank;i++)bytes[at++]=(Number(ab[i])||0)&255;
   for(let i=0;i<rank;i++)bytes[at++]=(Number(b[i])||0)&255;
   return bytes;
 }
@@ -256,6 +256,12 @@ async function handleSearch(data){
     const fixedNodeBudget=30000;
     const canSmp=!fairnessMode&&mode==='apex'&&self.crossOriginIsolated===true&&typeof SharedArrayBuffer!=='undefined'&&typeof Worker!=='undefined';
     const brain=new self.CheloBrain('chelo_worker',{data:brainData,plan,persist:false,v14Mode:true,baseModel:checkpoint.tensors,baseVersion:checkpoint.baseVersion});
+    // Enforce the hatchling gate inside the worker too. The app marks this as
+    // passed only after it has already chosen the developmental route.
+    if(mode==='adaptive'&&data.developmentalGatePassed!==true){
+      const developmental=brain.chooseAdaptiveMove(chess);
+      if(developmental?.move){self.postMessage({id,ok:true,engine:'developmental-companion',model:'piece-movement-to-learned-search',...developmental});return;}
+    }
     // Retained one-shot diagnostic helper entry point for existing test harnesses;
     // production Apex orchestration exclusively uses the persistent SAB loop.
     if(data.workerRole==='apex-helper'){
@@ -265,7 +271,7 @@ async function handleSearch(data){
     // Keep the verified Polyglot opening book in front of the C++ search.
     // Only a legal, hash-matched book move is accepted; after the book, all
     // adaptive tree search runs through C++/V37 and the pet adapters.
-    if(mode==='adaptive'&&bookBinary&&brain.adaptiveSearchProfile().challengeRating>=800){
+    if(mode==='adaptive'&&bookBinary&&brain.adaptiveSearchProfile().openingBookAllowed){
       const legal=chess.moves({verbose:true,skipSan:true});
       const bookMove=self.CheloPolyglotBookLookup(bookBinary,self.CheloPolyglotHash(chess),legal);
       if(bookMove){self.postMessage({id,ok:true,move:bookMove,depth:0,nodes:0,score:null,book:true,bookLookup:'polyglot-binary-search',cppEngine:false,engine:'polyglot-book',engineFallback:false,model:'chelo-v15-cpp-v37-dual-nnue'});return;}

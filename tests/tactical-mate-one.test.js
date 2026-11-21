@@ -30,8 +30,6 @@ function run(label,file) {
   }
   return {label,sha256:engine.sha,positions:puzzleSet.puzzles.length,foundMateInOne:mates,wrongNonMateMoves:wrong,illegalMoves:illegal,totalNodes};
 }
-const v37=run('Stage 3.7',path.join(base,'models/dual-nnue-v37.bin'));
-const v36=run('Stage 3.6 bootstrap',path.join(base,'benchmarks/references/stage36/models/dual-nnue-v36-bootstrap.bin'));
-assert.equal(v37.foundMateInOne,50);assert.equal(v37.illegalMoves,0);assert.equal(v37.wrongNonMateMoves,0);
-assert.equal(v36.foundMateInOne,50);assert.equal(v36.illegalMoves,0);assert.equal(v36.wrongNonMateMoves,0);
-console.log(JSON.stringify({format:'Chelo tactical retention subset: 50 verified mate-in-one positions',source:puzzleSet.title,protocol:{nodesPerPosition:8000,deterministicNodeBudget:true,policy:false,openingBook:false},results:[v37,v36],regressionsAgainstStage36:0,scope:'Narrow mate-in-one retention subset only; not a substitute for full WAC, Eigenmann or STS suites.'},null,2));
+const v38=run('Stage 3.8 (256-neuron)',path.join(base,'models/dual-nnue-v38-256.bin'));
+assert.equal(v38.foundMateInOne,50);assert.equal(v38.illegalMoves,0);assert.equal(v38.wrongNonMateMoves,0);
+console.log(JSON.stringify({format:'Chelo tactical retention subset: 50 verified mate-in-one positions',source:puzzleSet.title,protocol:{nodesPerPosition:8000,deterministicNodeBudget:true,policy:false,openingBook:false},results:[v38],scope:'Narrow mate-in-one retention subset only; not a substitute for full WAC, Eigenmann or STS suites.'},null,2));

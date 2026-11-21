@@ -14,9 +14,9 @@
   const TOKEN_KEY = 'chelo_access_token';
   const ETAG_KEY = 'chelo_cloud_etag';
   const BASE_MODEL_URL = './models/base-v14-float32.json';
-  const DUAL_MODEL_URL = './models/dual-nnue-v37.bin';
+  const DUAL_MODEL_URL = './models/dual-nnue-v38-256.bin';
   const BOOK_URL = './models/polyglot-book.bin';
-  const DUAL_MODEL_SHA256 = 'f9ffe3f0dc641c93be26f871086182a82291411a4e4b59c073fcc7c8bfc4022e';
+  const DUAL_MODEL_SHA256 = 'e14650d8f4ff79eb0197ab06fa7f6f370d53cc019289fde6f103e367db257826';
   const PET_BASE_VERSION = 'v13-f32-policy-2026-11-19-seed-20261119';
   let brain = null, cheloStore = null, cheloPets = [], activePetId = 'pet-1';
   let cheloPlayer = {id:'local-player',handle:'',displayName:'',settings:{},createdAt:Date.now(),activePetId:'pet-1',activeMatch:null};
@@ -74,7 +74,9 @@
     try{aiWorker=new Worker(new URL('./src/worker/ai-worker.js', document.baseURI),{name:'chelo-search'});}catch(error){console.warn('Chelo will use its local fallback search.',error);}
   }
   function requestAIMove(){
-    const profile=brain.adaptiveSearchProfile(),bookBinaryForLevel=profile.challengeRating>=800?openingBookBinary:null;
+    const developmental=brain.chooseAdaptiveMove(chess);
+    if(developmental?.move)return Promise.resolve({ok:true,...developmental,engine:'developmental-companion',engineFallback:false,model:'piece-movement-to-learned-search'});
+    const profile=brain.adaptiveSearchProfile(),bookBinaryForLevel=profile.openingBookAllowed?openingBookBinary:null;
     if(!aiWorker)return new Promise(resolve=>setTimeout(()=>{
       try{resolve({ok:true,...brain.chooseMove(chess,{maxNodes:profile.maxNodes,maxTimeMs:profile.maxTimeMs,maxDepth:profile.maxDepth,bookBinary:bookBinaryForLevel,usePolicy:false}),engine:'javascript-fallback',engineFallback:true,engineFallbackReason:'Web Worker is unavailable'});}
       catch(error){resolve({ok:false,error:error.message});}
@@ -85,12 +87,12 @@
       const handler=event=>{if(event.data?.id===id)finish(event.data);};
       const fallback=()=>{
         if(aiWorker){aiWorker.terminate();aiWorker=null;}
-        try{const p=brain.adaptiveSearchProfile();finish({ok:true,...brain.chooseMove(chess,{maxNodes:p.maxNodes,maxTimeMs:p.maxTimeMs,maxDepth:p.maxDepth,bookBinary:p.challengeRating>=800?openingBookBinary:null,usePolicy:false}),engine:'javascript-fallback',engineFallback:true,engineFallbackReason:'Worker search did not respond'});}
+        try{const p=brain.adaptiveSearchProfile();finish({ok:true,...brain.chooseMove(chess,{maxNodes:p.maxNodes,maxTimeMs:p.maxTimeMs,maxDepth:p.maxDepth,bookBinary:p.openingBookAllowed?openingBookBinary:null,usePolicy:false}),engine:'javascript-fallback',engineFallback:true,engineFallbackReason:'Worker search did not respond'});}
         catch(error){finish({ok:false,error:error.message});}
       };
       const errorHandler=()=>fallback(),timer=setTimeout(fallback,6500);
       aiWorker.addEventListener('message',handler);aiWorker.addEventListener('error',errorHandler,{once:true});
-      try{aiWorker.postMessage({id,fen:chess.fen(),brainData:brain.compactData(),plan:brain.plan,v14Mode:true,baseVersion:PET_BASE_VERSION,timeMs:profile.maxTimeMs,maxTimeMs:profile.maxTimeMs,nodeLimit:profile.maxNodes,maxNodes:profile.maxNodes,maxDepth:profile.maxDepth,mode:'adaptive',useCppEngine:true});}
+      try{aiWorker.postMessage({id,fen:chess.fen(),brainData:brain.compactData(),plan:brain.plan,v14Mode:true,baseVersion:PET_BASE_VERSION,timeMs:profile.maxTimeMs,maxTimeMs:profile.maxTimeMs,nodeLimit:profile.maxNodes,maxNodes:profile.maxNodes,maxDepth:profile.maxDepth,mode:'adaptive',useCppEngine:true,developmentalGatePassed:true});}
       catch{fallback();}
     });
   }
@@ -136,7 +138,7 @@
   }
   function playHuman(from,to,promotion='q'){
     const fenBefore=chess.fen(),move=chess.move({from,to,promotion});if(!move)return;
-    brain.observeHumanMove(fenBefore,move.uci,chess.historyMoves().length);brain.resolveLastPetMove(chess);
+    brain.observeHumanMove(fenBefore,move.uci,chess.historyMoves().length);brain.resolveLastPetMove(chess,move);
     lastMove=move;selected=null;selectedMoves=[];saveActiveMatch();renderBoard();updateBrainUI();updateClaimButton();
     if(checkGameEnd())return;
     busy=true;$('thinkingLabel').textContent='CHELO IS THINKING';$('turnState').textContent='Thinking…';$('gameMessage').textContent='Chelo is considering its reply.';makePetMove();
@@ -147,7 +149,7 @@
     if(!search?.ok||!search.move){busy=false;$('gameMessage').textContent=search?.error||'Chelo could not find a legal move.';$('thinkingLabel').textContent='YOUR MOVE';$('turnState').textContent='Your turn';toast('Chelo could not complete its move.');return;}
     const fenBefore=chess.fen(),move=chess.move(search.move);
     if(!move){busy=false;$('gameMessage').textContent='The search returned an invalid move. The board was not changed.';toast('Chelo returned an invalid move.');return;}
-    brain.observePetMove(fenBefore,move.uci,{piece:move.piece,captured:move.captured,gaveCheck:/[+#]$/.test(move.san),side:'b'},chess.historyMoves().length,chess);
+    brain.observePetMove(fenBefore,move.uci,{piece:move.piece,captured:move.captured,gaveCheck:/[+#]$/.test(move.san),promotion:move.promotion,side:'b'},chess.historyMoves().length,chess);
     lastMove=move;busy=false;saveActiveMatch();renderBoard();updateBrainUI();updateClaimButton();
     if(!checkGameEnd()){$('thinkingLabel').textContent='YOUR MOVE';$('turnState').textContent='Your turn';$('gameMessage').textContent='Your move.';}
   }
@@ -167,22 +169,36 @@
     const result=brain.reinforce(outcome,chess),petName=brain.data.petName;
     clearActiveMatch();
     $('thinkingLabel').textContent='MATCH COMPLETE';$('turnState').textContent=outcome==='win'?`${petName} won`:outcome==='loss'?'You won':'Draw';$('gameMessage').textContent=`Match complete: ${$('turnState').textContent}. ${reason}.`;
-    $('learningState').textContent=result.updatedPositions?'Bond adapted':'Memory recorded';updateClaimButton();
-    const trainingLine=result.updatedPositions
-      ?`Bond adapted in ${result.updatedPositions} of ${result.updatedPositions+result.skippedPositions} pet decision positions, changing ${result.updatedCoefficients} engine-used coefficients.`
-      :`No Bond coefficients needed changing in this match. Chelo still saved the match memory and result.`;
+    $('learningState').textContent=result.updatedCoefficients?'Bond adapted':result.trainedPairs?'Update held for validation':'Memory recorded';updateClaimButton();
+    const trainingLine=result.updatedCoefficients
+      ?`Bond compared ${result.trainedPairs} difficult good-versus-bad tactical examples across ${result.trainingParents} trainer positions. Validation improved, so ${result.updatedCoefficients} engine-used coefficients were updated.`
+      :result.trainedPairs
+        ?`Bond found ${result.trainedPairs} tactical contrasts, but its separate validation positions did not improve, so the adapter update was safely rejected. Memories and match results were still saved.`
+        :`This match did not contain enough clear tactical contrasts for a safe Bond LoRA update. Chelo still saved its move memories and match result.`;
     const challenge=result.challenge?` Personal challenge: ${result.challenge.previous} → ${result.challenge.current}.` : '';
     $('resultIcon').textContent=outcome==='win'?'♛':outcome==='loss'?'♙':'♟';
     $('resultTitle').textContent=outcome==='win'?`${petName} won`:outcome==='loss'?'You won':'Draw';
     $('resultReason').textContent=reason;
-    $('resultLearning').textContent=`${result.memory||'Match memory saved.'} ${trainingLine}${challenge}`;
+    $('resultLearning').textContent=`${result.memory||'Match memory saved.'} ${trainingLine} Growth: ${brain.developmentalProfile().label}.${challenge}`;
     updatePetUI();updateBrainUI();
     const dialog=$('matchResultDialog');if(!dialog.open)dialog.showModal();
   }
+  function claimableDrawReason(){
+    // FIDE treats threefold repetition and 50 moves as claimable, not automatic.
+    // Chelo's casual single-player mode auto-claims on the side to move so a
+    // repeated shuffle cannot trap the player in an endless game.
+    if(chess.inThreefold())return 'Threefold repetition (auto-claimed in casual play)';
+    if(chess.s?.half>=100)return '50-move rule (auto-claimed in casual play)';
+    return '';
+  }
   function checkGameEnd(){
-    if(!chess.game_over())return false;
-    const result=chess.result(),outcome=result==='b'?'win':result==='w'?'loss':'draw';
-    finishMatch(outcome,endReason());return true;
+    if(chess.game_over()){
+      const result=chess.result(),outcome=result==='b'?'win':result==='w'?'loss':'draw';
+      finishMatch(outcome,endReason());return true;
+    }
+    const claim=claimableDrawReason();
+    if(claim){finishMatch('draw',claim);return true;}
+    return false;
   }
   function updateMoveList(){
     const moves=chess.historyMoves(),list=$('moveList');if(!list)return;list.innerHTML='';
@@ -192,7 +208,7 @@
   }
   function updatePetUI(){
     const data=brain.data;let avatar='🐣';if(data.gen>=2&&data.gen<4)avatar='🐥';else if(data.gen>=4&&data.gen<8)avatar='🦉';else if(data.gen>=8)avatar='🐉';
-    $('petAvatar').textContent=avatar;$('petName').textContent=data.petName;$('petMood').textContent=brain.generation();$('drawerPersonality').textContent=brain.personality();
+    $('petAvatar').textContent=avatar;$('petName').textContent=data.petName;$('petMood').textContent=brain.developmentalProfile().label;$('drawerPersonality').textContent=brain.personality();
     $('growthValue').textContent=brain.growthLevel();$('masteryValue').textContent=brain.masteryTier();$('arenaRankValue').textContent='Unranked';$('recordValue').textContent=`${data.wins} · ${data.losses} · ${data.draws}`;
     $('challengeValue').textContent=`${data.elo||100} · Growing`; $('yourPetHandle').textContent=data.handle||'Not registered';updateSideLabels();
   }
@@ -355,7 +371,7 @@
     }
     createAIWorker();const legacy=readLegacyMatch();if(!cheloPlayer.activeMatch&&legacy)cheloPlayer.activeMatch=legacy;const restored=restoreMatch(getActiveMatch());if(!restored&&brain.data.pending.length)brain.resetPending();
     renderBoard();updatePetUI();updateBrainUI();updateClaimButton();
-    if(restored&&chess.historyMoves().length){$('gameMessage').textContent='Your unfinished match was restored.';if(chess.turn()==='b'&&!chess.game_over()){busy=true;$('thinkingLabel').textContent='CHELO IS THINKING';$('turnState').textContent='Thinking…';makePetMove();}else if(chess.game_over())checkGameEnd();}
+    if(restored&&chess.historyMoves().length){$('gameMessage').textContent='Your unfinished match was restored.';if(!checkGameEnd()&&chess.turn()==='b'){busy=true;$('thinkingLabel').textContent='CHELO IS THINKING';$('turnState').textContent='Thinking…';makePetMove();}}
     else saveActiveMatch();
 
     // Hamburger contains only pet personality and the two challenge destinations.

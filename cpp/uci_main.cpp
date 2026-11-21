@@ -94,9 +94,9 @@ static void doGo(const std::vector<std::string>& t){
 }
 
 int main(int argc,char**argv){
- u8 model[49368],kpk[24576];const char* modelPath="models/dual-nnue-v37.bin";
+ u8 model[394776],kpk[24576];const char* modelPath="models/dual-nnue-v38-256.bin";
  if(argc>1&&std::strcmp(argv[1],"--verify")!=0)modelPath=argv[1];
- const bool modelLoaded=loadFile(modelPath,model,49368)&&engine.loadModel(model,49368);
+ const bool modelLoaded=loadFile(modelPath,model,394776)&&engine.loadModel(model,394776);
  if(loadFile("models/kpk-wdl.bin",kpk,24576))engine.loadKpk(kpk,24576);
  if(argc>1&&std::strcmp(argv[1],"--verify")==0){
   bool a=engine.setFen(START_FEN);u64 p1=engine.perft(4);
@@ -115,7 +115,7 @@ int main(int argc,char**argv){
  while(std::getline(std::cin,line)){
   auto t=split(line);if(t.empty())continue;
   if(t[0]=="uci"){
-   std::cout<<"id name Chelo V15 CPP M8\nid author Chelo Project\n"
+   std::cout<<"id name Chelo V16 CPP 256-NNUE\nid author Chelo Project\n"
             <<"option name Move Overhead type spin default 30 min 0 max 1000\n"
             <<"option name Bond_LoRA type string default\n"
             <<"option name Arena_LoRA type string default\n"
@@ -128,7 +128,7 @@ int main(int argc,char**argv){
     if(name=="Clear Hash")engine.clearHash();
     else if(name=="Move Overhead"&&v!=std::string::npos){u64 x=number(line.substr(v+7),30);moveOverheadMs=(u32)std::min<u64>(x,1000);}
     else if((name=="Bond_LoRA"||name=="Arena_LoRA")&&v!=std::string::npos){
-     const bool arena=name=="Arena_LoRA";u8 adapter[134];const u32 bytes=arena?134:69;
+     const bool arena=name=="Arena_LoRA";u8 adapter[1030];const u32 bytes=arena?1030:517;
      const std::string file=line.substr(v+7);
      if(loadFile(file.c_str(),adapter,bytes))std::cout<<"info string adapter "<<(engine.setAdapter(arena?1:0,adapter,bytes)?"loaded":"rejected")<<"\n";
      else std::cout<<"info string adapter file unavailable\n";

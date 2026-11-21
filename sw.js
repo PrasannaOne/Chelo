@@ -1,11 +1,11 @@
 /* Chelo offline shell. Relative paths resolve under the deployed repository subpath. */
-const CACHE_NAME = 'chelo-shell-v26-hatchling-learning-match-flow';
+const CACHE_NAME = 'chelo-shell-v38-256-nnue';
 const ASSETS = [
   './', './index.html', './manifest.webmanifest', './assets/style.css', './assets/icon.svg', './assets/pieces.svg',
   './src/app/app.js', './src/engine/polyglot-random.js', './src/engine/chess.js',
   './src/engine/endgame-kpk.js', './src/engine/fast-search.js', './src/nnue/dual-nnue.js',
   './src/soul/chelo-save.js', './src/soul/brain.js', './src/worker/ai-worker.js', './wasm/chelo.wasm',
-  './models/base-v14-float32.json', './models/polyglot-book.bin', './models/dual-nnue-v37.bin',
+  './models/base-v14-float32.json', './models/polyglot-book.bin', './models/dual-nnue-v38-256.bin',
   './models/kpk-wdl.bin', './models/kpk-wdl-manifest.json'
 ];
 

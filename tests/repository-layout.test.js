@@ -14,7 +14,7 @@ assert(html.includes('data-open-workspace="arena"')&&html.includes('data-open-wo
 assert(app.includes("const LEGACY_PET_STORAGE_KEY = 'chessling_pet_1'")&&app.includes("const PET_STORAGE_KEY = 'chelo_pet_1'"),'legacy pet save migration keys missing');
 const workerImports=[...worker.matchAll(/importScripts\(([^;]+)\);/g)].flatMap(m=>[...m[1].matchAll(/'([^']+)'/g)].map(x=>x[1]));
 for(const rel of workerImports){const abs=path.resolve(root,'src/worker',rel);assert(fs.existsSync(abs),`worker import path missing: ${rel}`);}
-for(const rel of ['../../models/base-v14-float32.json','../../models/polyglot-book.bin','../../models/dual-nnue-v37.bin','../../wasm/chelo.wasm'])assert(fs.existsSync(path.resolve(root,'src/worker',rel)),`worker fetch asset missing: ${rel}`);
+for(const rel of ['../../models/base-v14-float32.json','../../models/polyglot-book.bin','../../models/dual-nnue-v38-256.bin','../../wasm/chelo.wasm'])assert(fs.existsSync(path.resolve(root,'src/worker',rel)),`worker fetch asset missing: ${rel}`);
 const assets=[...sw.matchAll(/'\.\/([^']+)'/g)].map(m=>m[1]);
 for(const asset of assets)assert(fs.existsSync(path.join(root,asset)),`service-worker precache path missing: ${asset}`);
 assert.equal(manifest.start_url,'./');assert.equal(manifest.scope,'./');assert.equal(manifest.short_name,'Chelo');
@@ -23,7 +23,7 @@ assert(fs.existsSync(path.join(root,'src/uci/chelo-uci.js')),'Node UCI wrapper m
 assert(fs.existsSync(path.join(root,'tests/uci-gauntlet.js')),'paired UCI gauntlet missing');
 execFileSync('sh',['build-static.sh'],{cwd:root,stdio:'ignore'});
 assert(!fs.existsSync(path.join(root,'_site/src/uci')),'development UCI wrapper must stay out of the browser deployment artifact');
-for(const asset of ['index.html','manifest.webmanifest','sw.js','_headers','assets/style.css','src/worker/ai-worker.js','models/dual-nnue-v37.bin','wasm/chelo.wasm'])assert(fs.existsSync(path.join(root,'_site',asset)),`static deployment artifact missing: ${asset}`);
+for(const asset of ['index.html','manifest.webmanifest','sw.js','_headers','assets/style.css','src/worker/ai-worker.js','models/dual-nnue-v38-256.bin','wasm/chelo.wasm'])assert(fs.existsSync(path.join(root,'_site',asset)),`static deployment artifact missing: ${asset}`);
 assert(!fs.existsSync(path.join(root,'_site','tests'))&&!fs.existsSync(path.join(root,'_site','workers')),'development or Arena Worker source leaked into the static site artifact');
 assert(read('_headers').includes('Cross-Origin-Embedder-Policy: require-corp'),'Cloudflare Pages COEP header missing');
 assert(read('src/worker/ai-worker.js').includes("const DUAL_NNUE_SHA256 = 'f9ffe3f0dc641c93be26f871086182a82291411a4e4b59c073fcc7c8bfc4022e'"));

@@ -1,4 +1,14 @@
-# Chelo V15-CPP · M8 Engine Hardening + M6 Companion
+# Chelo V16-CPP · 256-Neuron Dual-NNUE + Natural Baby-to-GM Progression
+
+Chelo is an offline-first, collectible chess-pet game. The shared C++20 chess engine and **V38 256-neuron Dual-NNUE** (`models/dual-nnue-v38-256.bin`, 394,776 bytes, SHA-256 `e14650d8f4ff79eb0197ab06fa7f6f370d53cc019289fde6f103e367db257826`) provide common chess capability; each pet develops its own identity, personality, trainer-specific Bond LoRA adapter (517 bytes), a separate Arena LoRA adapter (1,030 bytes) reserved for verified battles, and compact memories. **A player's only portable save is one `.chelo` file containing the complete player record and full pet roster.**
+
+## V38 / M10 upgrades
+
+- **256-neuron Dual-NNUE (`(768 -> 256) x 2 -> SCReLU -> 512 -> 1`):** Upgraded from 32 to 256 hidden units per perspective across C++ (`cpp/chelo_engine.hpp`, `cpp/chelo_engine.cpp`, `cpp/wasm_exports.cpp`, `cpp/uci_main.cpp`), JavaScript (`src/nnue/dual-nnue.js`, `src/engine/fast-search.js`, `src/soul/brain.js`), and `.chelo` / Cloudflare `PlayerSaveDO` adapter validation, with 64-bit accumulator sum overflow protection.
+- **Natural baby-to-GM progression:** Game 0 remains a 100% pure hatchling (uniform random legal moves, 0% engine). After Game 0, growth speed follows the player's actual challenge rating, accepted Bond LoRA steps, and game experience—waking up quickly for strong players and staying gentle for casual players instead of unlocking at a fixed Game 12 wall.
+- **Higher peak search ceiling & richer match memories:** Peak adaptive search scales smoothly from 500 nodes / 65 ms up to 750,000 nodes / 2,200 ms (depth 18), and episodic memories record real move counts and tactical strike counts.
+
+---
 
 Chelo is an offline-first, collectible chess-pet game. The shared C++ chess engine and V37 model provide common chess capability; each pet develops its own identity, personality, trainer-specific Bond learning, a separate Arena adapter reserved for verified battles, and compact memories. **A player's only portable save is one `.chelo` file containing the complete player record and full pet roster.** Individual `.soul` files are retired.
 
@@ -7,6 +17,14 @@ Chelo is an offline-first, collectible chess-pet game. The shared C++ chess engi
 The repository accepts one root-level upload archive named `Chelo.zip`. Its contents must be rooted directly at the project root (for example, `index.html`, `cpp/`, `src/`, `models/`, `tests/`, and `docs/`, not an enclosing version-named folder). Upload or replace `Chelo.zip` in the repository root and the **Install Chelo project archive** workflow will validate its paths and required files, build/check the native engine, run the core engine regression suite, prepare a static-site artifact, and then copy project files into the repository root. The archive is the complete application source of truth: installation removes stale application/project files that are absent from the archive, while preserving `.git/`, `.github/` workflow definitions, and the uploaded `Chelo.zip`. GitHub Actions workflow files are managed separately and are deliberately not overwritten by the archive installer because the default Actions token cannot update workflow files. GitHub Pages deployment remains managed by the repository Pages configuration.
 
 For manual local checks, see `M8-ANDROID-QUICKSTART.md` and run `bash run-m8-engine-tests.sh` on a compatible Clang/Node environment. Android users should use `bash build_termux.sh` in Termux and then `./bin/chelo-uci --verify`.
+
+## M9: true hatchling progression and draw guardrails
+
+A pet with zero completed trainer games now chooses uniformly from legal moves only. It does not use the V37 evaluator, C++ search, policy head or opening book to choose its first-game moves. Across games 1–11, simple material awareness and position/move memory are introduced gradually; V37 search begins blending in at game 12 and reaches full selection only after sustained play. At four to five completed matches, Chelo should notice material and immediate piece danger but still make frequent mistakes. These stages are behavioural design targets, not certified Elo levels.
+
+Bond LoRA now learns from same-position tactical counterfactuals rather than treating the final game winner as a label for every position. It mines difficult positive-capture versus immediate-hang contrasts, applies bounded importance-weighted Int8 updates, and keeps an update only when held-back parent positions improve. Accepted Bond deltas already influence the developmental move selector; full V37 search still phases in from game 12. See `docs/BOND-LORA-LEARNING.md` and run `node tests/lora-milestone-benchmark.test.js` for the three-run 5/10/25/50-game benchmark. Immediate recaptures also give position/move-specific memory feedback.
+
+Casual single-player games automatically claim threefold-repetition and 50-move draws to stop shuffle loops. Under FIDE rules those two are claimable rather than automatic; fivefold repetition and the 75-move rule are automatic, with checkmate taking precedence. See `docs/DEVELOPMENTAL-LEARNING-AND-DRAW-RULES.md`.
 
 ## M8: native search correctness and efficiency hardening
 
@@ -20,11 +38,11 @@ M7 upgrades the native C++/WASM engine with ray-mask bitboard move generation, d
 
 ## M6: C++/V37-first adaptive companion
 
-M6 promotes the C++/WASM engine from an optional diagnostic path to the default engine for local adaptive companion games. The Worker verifies and loads the pinned V37 model, loads the pet's Bond/Arena adapters, and runs a bounded C++ search. Both the personal node budget and time budget are enforced. If WebAssembly is unavailable, a visible JavaScript safety fallback remains available.
+M6 promotes the C++/WASM engine from an optional diagnostic path to the search engine for local adaptive companion games. M9 now gates its move selection behind developmental stages, so a fresh hatchling does not use that strong search from its first game. The Worker verifies and loads the pinned V37 model, loads the pet's Bond/Arena adapters, and runs a bounded C++ search. Both the personal node budget and time budget are enforced. If WebAssembly is unavailable, a visible JavaScript safety fallback remains available.
 
 Completed trainer games now leave compact persistent event memories, and personality descriptions reflect combinations of the pet's evolving traits. The most recent memory appears in the growing-brain panel and travels inside the existing V16 `.chelo` pet record extension.
 
-**Arena integrity remains deliberately strict:** the current server proves that submitted games are legal, not that the opponent pet produced the submitted moves. Such exhibitions do not train Arena. Trainer results update Bond only. Server-verifiable AI-move attestation is still needed before Arena battles can safely feed Arena learning.
+**Arena integrity remains deliberately strict:** the current server proves that submitted games are legal, not that the opponent pet produced the submitted moves. Such exhibitions do not train Arena. Trainer tactical contrasts update Bond only. Game outcomes inform memories and challenge calibration rather than directly training the evaluator. Server-verifiable AI-move attestation is still needed before Arena battles can safely feed Arena learning.
 
 The internal adaptive challenge estimate is not a certified Elo. M6 validates the budget curve and integration, not human-skill calibration or an Elo gain. M7 adds reproducible native-device benchmarking and relative UCI Elo tools; M8 hardens the C++ search path; real Android measurements and a full external-engine gauntlet must still be collected on the target device.
 
@@ -61,7 +79,7 @@ The current deterministic stress fixtures measure:
 
 These counts come from deterministic synthetic distinct-position fixtures. They are not a promise that every real pet will retain exactly that many memories or that every memory is a separately playable game. Real training, long-session growth and Android storage behaviour still need device validation. A fresh Free test file is about 716 bytes, before the player has built up much history.
 
-M4 connected trainer-game outcome feedback to the Bond adapter. M6 makes the C++ V37 adapter-aware evaluator the default for local adaptive companion play. Trainer games update Bond only. Online Arena exhibitions remain unranked and are not fed into Arena learning because the server currently verifies legal replay, not AI move authorship. The V37 model remains immutable.
+M4 first connected trainer-game outcome feedback to Bond; the M10 learner supersedes that noisy update rule with same-position tactical counterfactuals, bounded LoRA updates and held-out validation. M6 makes the C++ V37 adapter-aware evaluator the default for local adaptive companion play. Trainer games update Bond only. Online Arena exhibitions remain unranked and are not fed into Arena learning because the server currently verifies legal replay, not AI move authorship. The V37 model remains immutable.
 
 See:
 - `reference/CHELO-SAVE-FORMAT.md` for the complete save contract.
@@ -79,7 +97,7 @@ M6 leaves the shared V37 model weights frozen while extending the C++ search bri
 - `cpp/wasm_exports.cpp` / `wasm/chelo.wasm`: browser Worker bridge.
 - `build_termux.sh`: native Clang++ Android/Termux build. `build_wasm.sh`: separate freestanding WASM build.
 
-In M5, the optional C++ Worker bridge was still opt-in and adaptive matches used JavaScript FastSearch. M6 supersedes that behaviour: local adaptive matches now use C++/V37 by default, subject to an explicit JavaScript safety fallback. The 300–2,400 challenge number remains an internal estimate, not a calibrated Elo rating.
+In M5, the optional C++ Worker bridge was still opt-in and adaptive matches used JavaScript FastSearch. M6 supersedes that behaviour: mature local adaptive matches use C++/V37 search, subject to the M9 developmental gate and an explicit JavaScript safety fallback. The 300–2,400 challenge number remains an internal estimate, not a calibrated Elo rating.
 
 ## Cloudflare storage design
 

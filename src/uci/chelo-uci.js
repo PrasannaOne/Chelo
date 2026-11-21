@@ -9,7 +9,7 @@ const crypto = require('node:crypto');
 const readline = require('node:readline');
 const ROOT = path.resolve(__dirname, '../..');
 const START_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
-const MODEL_SHA256 = 'f9ffe3f0dc641c93be26f871086182a82291411a4e4b59c073fcc7c8bfc4022e';
+const MODEL_SHA256 = 'e14650d8f4ff79eb0197ab06fa7f6f370d53cc019289fde6f103e367db257826';
 
 function loadRuntime() {
   for (const file of [
@@ -25,7 +25,7 @@ function loadRuntime() {
   if (checkpoint.version !== 14 || !checkpoint.tensors || !checkpoint.baseVersion) {
     throw new Error('Frozen V14 pet base checkpoint is missing or invalid.');
   }
-  const modelBytes = fs.readFileSync(path.join(ROOT, 'models/dual-nnue-v37.bin'));
+  const modelBytes = fs.readFileSync(path.join(ROOT, 'models/dual-nnue-v38-256.bin'));
   const digest = crypto.createHash('sha256').update(modelBytes).digest('hex');
   if (digest !== MODEL_SHA256) throw new Error(`Dual-NNUE SHA-256 mismatch: ${digest}`);
   const buffer = modelBytes.buffer.slice(modelBytes.byteOffset, modelBytes.byteOffset + modelBytes.byteLength);

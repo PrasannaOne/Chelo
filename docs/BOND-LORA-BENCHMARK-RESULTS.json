@@ -1,0 +1,330 @@
+{
+  "test": "Chelo Bond LoRA held-out counterfactual tactical-pair benchmark",
+  "model": "frozen V37 base, per-pet rank-1 Bond bias adapter",
+  "training": {
+    "independentRuns": 3,
+    "gamesPerRun": 50,
+    "milestones": [
+      5,
+      10,
+      25,
+      50
+    ],
+    "seedBases": [
+      1000,
+      2000,
+      3000
+    ],
+    "gameCapPlies": 70
+  },
+  "holdout": {
+    "games": 12,
+    "maxSampledPositionsPerGame": 5,
+    "independentSeedBase": 67001,
+    "parentPositions": 60,
+    "positiveNegativeComparisons": 182,
+    "baseline": {
+      "pairs": 182,
+      "accuracy": 0.98352,
+      "meanMarginCp": 151.5
+    },
+    "hardest40Percent": {
+      "pairs": 72,
+      "baseline": {
+        "pairs": 72,
+        "accuracy": 0.95833,
+        "meanMarginCp": 68.5
+      }
+    }
+  },
+  "finalSummary": {
+    "meanHeldoutMarginCp": 210.7,
+    "meanHardMarginCp": 105.2,
+    "meanHeldoutAccuracy": 0.98535,
+    "meanHardAccuracy": 0.96296,
+    "runsWithHigherOverallMargin": 3,
+    "runsWithHigherHardMargin": 3
+  },
+  "replicates": [
+    {
+      "seedBase": 1000,
+      "rows": [
+        {
+          "games": 5,
+          "acceptedBondSteps": 5,
+          "trainedPairs": 32,
+          "changedCoefficients": 3,
+          "validationLossBefore": 0.46550887976788996,
+          "validationLossAfter": 0.4639038117996961,
+          "heldout": {
+            "pairs": 182,
+            "accuracy": 0.98352,
+            "meanMarginCp": 160.9
+          },
+          "heldoutHard": {
+            "pairs": 72,
+            "accuracy": 0.95833,
+            "meanMarginCp": 75
+          },
+          "save": {
+            "bytes": 8116,
+            "adapterRoundTrip": "exact"
+          }
+        },
+        {
+          "games": 10,
+          "acceptedBondSteps": 10,
+          "trainedPairs": 31,
+          "changedCoefficients": 8,
+          "validationLossBefore": 0.045482430072897706,
+          "validationLossAfter": 0.04424787249578932,
+          "heldout": {
+            "pairs": 182,
+            "accuracy": 0.98352,
+            "meanMarginCp": 168.9
+          },
+          "heldoutHard": {
+            "pairs": 72,
+            "accuracy": 0.95833,
+            "meanMarginCp": 79.8
+          },
+          "save": {
+            "bytes": 15509,
+            "adapterRoundTrip": "exact"
+          }
+        },
+        {
+          "games": 25,
+          "acceptedBondSteps": 24,
+          "trainedPairs": 43,
+          "changedCoefficients": 16,
+          "validationLossBefore": 0.45731037330471724,
+          "validationLossAfter": 0.45041670281647106,
+          "heldout": {
+            "pairs": 182,
+            "accuracy": 0.98352,
+            "meanMarginCp": 189.1
+          },
+          "heldoutHard": {
+            "pairs": 72,
+            "accuracy": 0.95833,
+            "meanMarginCp": 92.5
+          },
+          "save": {
+            "bytes": 37173,
+            "adapterRoundTrip": "exact"
+          }
+        },
+        {
+          "games": 50,
+          "acceptedBondSteps": 48,
+          "trainedPairs": 36,
+          "changedCoefficients": 11,
+          "validationLossBefore": 0.1490897966780676,
+          "validationLossAfter": 0.14878246648661975,
+          "heldout": {
+            "pairs": 182,
+            "accuracy": 0.98901,
+            "meanMarginCp": 215.9
+          },
+          "heldoutHard": {
+            "pairs": 72,
+            "accuracy": 0.97222,
+            "meanMarginCp": 108.9
+          },
+          "save": {
+            "bytes": 73170,
+            "adapterRoundTrip": "exact"
+          }
+        }
+      ]
+    },
+    {
+      "seedBase": 2000,
+      "rows": [
+        {
+          "games": 5,
+          "acceptedBondSteps": 5,
+          "trainedPairs": 46,
+          "changedCoefficients": 6,
+          "validationLossBefore": 0.2815584282972987,
+          "validationLossAfter": 0.27998679267512605,
+          "heldout": {
+            "pairs": 182,
+            "accuracy": 0.98352,
+            "meanMarginCp": 158.3
+          },
+          "heldoutHard": {
+            "pairs": 72,
+            "accuracy": 0.95833,
+            "meanMarginCp": 72
+          },
+          "save": {
+            "bytes": 8116,
+            "adapterRoundTrip": "exact"
+          }
+        },
+        {
+          "games": 10,
+          "acceptedBondSteps": 9,
+          "trainedPairs": 28,
+          "changedCoefficients": 22,
+          "validationLossBefore": 0.623358515183116,
+          "validationLossAfter": 0.5892252901371979,
+          "heldout": {
+            "pairs": 182,
+            "accuracy": 0.97802,
+            "meanMarginCp": 166.8
+          },
+          "heldoutHard": {
+            "pairs": 72,
+            "accuracy": 0.94444,
+            "meanMarginCp": 77.8
+          },
+          "save": {
+            "bytes": 15512,
+            "adapterRoundTrip": "exact"
+          }
+        },
+        {
+          "games": 25,
+          "acceptedBondSteps": 23,
+          "trainedPairs": 28,
+          "changedCoefficients": 11,
+          "validationLossBefore": 0.4532138286158162,
+          "validationLossAfter": 0.44857631802889164,
+          "heldout": {
+            "pairs": 182,
+            "accuracy": 0.97802,
+            "meanMarginCp": 184.4
+          },
+          "heldoutHard": {
+            "pairs": 72,
+            "accuracy": 0.94444,
+            "meanMarginCp": 88.2
+          },
+          "save": {
+            "bytes": 35732,
+            "adapterRoundTrip": "exact"
+          }
+        },
+        {
+          "games": 50,
+          "acceptedBondSteps": 42,
+          "trainedPairs": 36,
+          "changedCoefficients": 14,
+          "validationLossBefore": 0.2817983035424163,
+          "validationLossAfter": 0.274582919001483,
+          "heldout": {
+            "pairs": 182,
+            "accuracy": 0.97802,
+            "meanMarginCp": 205.3
+          },
+          "heldoutHard": {
+            "pairs": 72,
+            "accuracy": 0.94444,
+            "meanMarginCp": 101
+          },
+          "save": {
+            "bytes": 70699,
+            "adapterRoundTrip": "exact"
+          }
+        }
+      ]
+    },
+    {
+      "seedBase": 3000,
+      "rows": [
+        {
+          "games": 5,
+          "acceptedBondSteps": 4,
+          "trainedPairs": 24,
+          "changedCoefficients": 25,
+          "validationLossBefore": 0.321713507389742,
+          "validationLossAfter": 0.3156406016806845,
+          "heldout": {
+            "pairs": 182,
+            "accuracy": 0.98352,
+            "meanMarginCp": 156.1
+          },
+          "heldoutHard": {
+            "pairs": 72,
+            "accuracy": 0.95833,
+            "meanMarginCp": 71
+          },
+          "save": {
+            "bytes": 8144,
+            "adapterRoundTrip": "exact"
+          }
+        },
+        {
+          "games": 10,
+          "acceptedBondSteps": 9,
+          "trainedPairs": 28,
+          "changedCoefficients": 26,
+          "validationLossBefore": 0.4319694438672735,
+          "validationLossAfter": 0.42588323576152637,
+          "heldout": {
+            "pairs": 182,
+            "accuracy": 0.98352,
+            "meanMarginCp": 162.7
+          },
+          "heldoutHard": {
+            "pairs": 72,
+            "accuracy": 0.95833,
+            "meanMarginCp": 74.5
+          },
+          "save": {
+            "bytes": 15542,
+            "adapterRoundTrip": "exact"
+          }
+        },
+        {
+          "games": 25,
+          "acceptedBondSteps": 24,
+          "trainedPairs": 24,
+          "changedCoefficients": 11,
+          "validationLossBefore": 0.29952521838190893,
+          "validationLossAfter": 0.2951411755319066,
+          "heldout": {
+            "pairs": 182,
+            "accuracy": 0.98352,
+            "meanMarginCp": 186.1
+          },
+          "heldoutHard": {
+            "pairs": 72,
+            "accuracy": 0.95833,
+            "meanMarginCp": 91.2
+          },
+          "save": {
+            "bytes": 37259,
+            "adapterRoundTrip": "exact"
+          }
+        },
+        {
+          "games": 50,
+          "acceptedBondSteps": 48,
+          "trainedPairs": 32,
+          "changedCoefficients": 6,
+          "validationLossBefore": 0.2312496592857214,
+          "validationLossAfter": 0.22898306891820203,
+          "heldout": {
+            "pairs": 182,
+            "accuracy": 0.98901,
+            "meanMarginCp": 211
+          },
+          "heldoutHard": {
+            "pairs": 72,
+            "accuracy": 0.97222,
+            "meanMarginCp": 105.7
+          },
+          "save": {
+            "bytes": 73279,
+            "adapterRoundTrip": "exact"
+          }
+        }
+      ]
+    }
+  ],
+  "scope": "Each positive and negative candidate comes from the same legal parent position. Positives capture material or promote; negatives allow an immediate legal recapture of the moved piece. The learner mines hard contrasts, batches gradients, and accepts an update only when a separate set of parent positions has lower pairwise logistic loss. This is a one-ply tactical preference proxy, not Elo or match strength."
+}

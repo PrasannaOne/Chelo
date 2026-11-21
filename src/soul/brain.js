@@ -267,17 +267,17 @@
 
   // Stage 3.6 dual-perspective adapters are compact rank-1 Bond and rank-2
   // Arena bias deltas. Both adapters are packed together in the single player .chelo file.
-  function freshDualAdapter(rank){return {rank,shift:8,aW:new Int8Array(32*rank),aB:new Int8Array(32*rank),b:new Int8Array(rank),steps:0};}
+  function freshDualAdapter(rank){return {rank,shift:8,aW:new Int8Array(256*rank),aB:new Int8Array(256*rank),b:new Int8Array(rank),steps:0};}
   function packDualAdapter(adapter){
-    const rank=adapter?.rank===2?2:1,shift=clamp(adapter?.shift|0,0,14),aW=adapter?.aW||new Int8Array(32*rank),aB=adapter?.aB||new Int8Array(32*rank),b=adapter?.b||new Int8Array(rank);
-    if(aW.length!==32*rank||aB.length!==32*rank||b.length!==rank)throw new Error('Dual LoRA adapter tensor shape mismatch.');
-    const bytes=new Uint8Array(4+64*rank+rank),view=new DataView(bytes.buffer);bytes[0]=rank;bytes[1]=shift;view.setUint16(2,Math.max(0,adapter?.steps|0)&65535,true);let at=4;
+    const rank=adapter?.rank===2?2:1,shift=clamp(adapter?.shift|0,0,14),aW=adapter?.aW||new Int8Array(256*rank),aB=adapter?.aB||new Int8Array(256*rank),b=adapter?.b||new Int8Array(rank);
+    if(aW.length!==256*rank||aB.length!==256*rank||b.length!==rank)throw new Error('Dual LoRA adapter tensor shape mismatch.');
+    const bytes=new Uint8Array(4+512*rank+rank),view=new DataView(bytes.buffer);bytes[0]=rank;bytes[1]=shift;view.setUint16(2,Math.max(0,adapter?.steps|0)&65535,true);let at=4;
     for(let i=0;i<aW.length;i++)bytes[at++]=aW[i]&255;for(let i=0;i<aB.length;i++)bytes[at++]=aB[i]&255;for(let i=0;i<b.length;i++)bytes[at++]=b[i]&255;
     return base64Encode(bytes);
   }
   function unpackDualAdapter(encoded,expectedRank){
     if(!encoded)return freshDualAdapter(expectedRank);const bytes=base64Decode(encoded);if(bytes.length<5)throw new Error('Dual LoRA adapter is truncated.');
-    const rank=bytes[0],shift=bytes[1],expected=4+65*rank;if((rank!==1&&rank!==2)||rank!==expectedRank||shift>14||bytes.length!==expected)throw new Error('Dual LoRA adapter header/shape mismatch.');
+    const rank=bytes[0],shift=bytes[1],expected=4+513*rank;if((rank!==1&&rank!==2)||rank!==expectedRank||shift>14||bytes.length!==expected)throw new Error('Dual LoRA adapter header/shape mismatch.');
     const view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength),adapter=freshDualAdapter(rank);adapter.shift=shift;adapter.steps=view.getUint16(2,true);let at=4;
     for(let i=0;i<adapter.aW.length;i++)adapter.aW[i]=bytes[at++]>127?bytes[at-1]-256:bytes[at-1];
     for(let i=0;i<adapter.aB.length;i++)adapter.aB[i]=bytes[at++]>127?bytes[at-1]-256:bytes[at-1];
@@ -287,7 +287,7 @@
   function freshDualLora(){return {bond:freshDualAdapter(1),arena:freshDualAdapter(2)};}
   function normaliseDualLora(value){
     const source=value&&typeof value==='object'?value:{};
-    const normalise=(item,rank)=>typeof item==='string'?unpackDualAdapter(item,rank):(()=>{const out=freshDualAdapter(rank),x=item&&typeof item==='object'?item:{};out.shift=clamp(Number(x.shift)|0,0,14);out.steps=Math.max(0,Number(x.steps)|0);for(const [key,length] of [['aW',32*rank],['aB',32*rank],['b',rank]]){const values=x[key];if(values&&values.length===length)for(let i=0;i<length;i++)out[key][i]=clamp(Number(values[i])|0,-128,127);}return out;})();
+    const normalise=(item,rank)=>typeof item==='string'?unpackDualAdapter(item,rank):(()=>{const out=freshDualAdapter(rank),x=item&&typeof item==='object'?item:{};out.shift=clamp(Number(x.shift)|0,0,14);out.steps=Math.max(0,Number(x.steps)|0);for(const [key,length] of [['aW',256*rank],['aB',256*rank],['b',rank]]){const values=x[key];if(values&&values.length===length)for(let i=0;i<length;i++)out[key][i]=clamp(Number(values[i])|0,-128,127);}return out;})();
     return {bond:normalise(source.bond,1),arena:normalise(source.arena,2)};
   }
   function packDualLora(value){const source=normaliseDualLora(value);return {bond:packDualAdapter(source.bond),arena:packDualAdapter(source.arena)};}
@@ -410,7 +410,7 @@
       // Opening tables and replay buffers belonged to the retired V14 learner.
       // The V16 save keeps only compact episodic outcomes plus Bond/Arena adapters.
       data.humanOpenings={};data.openingReplies={};data.replay=[];
-      data.pending=Array.isArray(old.pending)?old.pending.filter(item=>item&&typeof item.f==='string'&&typeof item.m==='string').map(item=>({f:item.f.startsWith('h')?item.f:`${fenKey(item.f)} 0 1`,k:compactMemoryKey(item.k||item.f),m:item.m,r:!!item.r,ply:Math.max(0,Number(item.ply)||0),side:item.side==='b'?'b':'w',at:Number(item.at)||0,pred:Number(item.pred)||0})):[];
+      data.pending=Array.isArray(old.pending)?old.pending.filter(item=>item&&typeof item.f==='string'&&typeof item.m==='string').map(item=>({f:item.f.startsWith('h')?item.f:`${fenKey(item.f)} 0 1`,k:compactMemoryKey(item.k||item.f),m:item.m,r:!!item.r,ply:Math.max(0,Number(item.ply)||0),side:item.side==='b'?'b':'w',at:Number(item.at)||0,pred:Number(item.pred)||0,after:typeof item.after==='string'&&item.after?`${fenKey(item.after)} 0 1`:null,reward:clamp(Number(item.reward)||0,-1,1)})):[];
       data.geneticTrace={...base.geneticTrace,...(old.geneticTrace||{})};
       data.mastery={...base.mastery,...(old.mastery||{})};
       const model=old.model&&typeof old.model==='object'?old.model:null;
@@ -490,8 +490,10 @@
       memoryRows.forEach(([position,moves],positionIndex)=>moves.forEach((item,moveIndex)=>memoryLookup.set(`${position}\u0000${decodeSearchMove(item[0])}`,[positionIndex,moveIndex])));
       const pendingRows=(data.pending||[]).map(item=>{
         const position=compactMemoryKey(item.k||item.f),pair=memoryLookup.get(`${position}\u0000${item.m}`);
-        return pair?[pair[0],pair[1],item.r?1:0,item.ply,item.side==='b'?1:0,Math.floor((Number(item.at)||0)/86400000),Number((Number(item.pred)||0).toFixed(3)),packPositionKey(item.f)]
+        const row=pair?[pair[0],pair[1],item.r?1:0,item.ply,item.side==='b'?1:0,Math.floor((Number(item.at)||0)/86400000),Number((Number(item.pred)||0).toFixed(3)),packPositionKey(item.f)]
           :[-1,-1,item.r?1:0,item.ply,item.side==='b'?1:0,Math.floor((Number(item.at)||0)/86400000),Number((Number(item.pred)||0).toFixed(3)),packPositionKey(item.f),encodeSearchMove(item.m),position];
+        row.push(item.after?packPositionKey(item.after):'',clamp(Math.round((Number(item.reward)||0)*100),-100,100));
+        return row;
       });
       return {
         v:16,
@@ -515,7 +517,7 @@
           const row=item[0]>=0?source.m?.[item[0]]:null,moveRow=row?.[1]?.[item[1]],position=compactMemoryKey(row?.[0]||item[9]||'');
           const packedFen=item[7]||'';
           const fen=packedFen?`${unpackPositionKey(packedFen)} 0 1`:unpackPositionKey(row?.[0]||'');
-          return {f:fen,k:position,m:moveRow?decodeSearchMove(moveRow[0]):decodeSearchMove(item[8]||0),r:!!item[2],ply:item[3]||0,side:item[4]?'b':'w',at:(item[5]||0)*86400000,pred:Number(item[6])||0};
+          return {f:fen,k:position,m:moveRow?decodeSearchMove(moveRow[0]):decodeSearchMove(item[8]||0),r:!!item[2],ply:item[3]||0,side:item[4]?'b':'w',at:(item[5]||0)*86400000,pred:Number(item[6])||0,after:item[10]?`${unpackPositionKey(item[10])} 0 1`:null,reward:clamp((Number(item[11])||0)/100,-1,1)};
         });
         const oldV16Identity=source.i.length>=10,hasPracticeCounter=source.i.length===9;
         const genIndex=oldV16Identity?3:2,winsIndex=genIndex+1,lossesIndex=genIndex+2,drawsIndex=genIndex+3,gamesIndex=genIndex+4,xpIndex=oldV16Identity?9:hasPracticeCounter?8:7;
@@ -1053,7 +1055,11 @@
       if(meta.captured)this.data.traits.bold=clamp(this.data.traits.bold+0.6,0,100);
       if(isNew)this.data.traits.curious=clamp(this.data.traits.curious+0.3,0,100);
       if(!meta.captured&&!meta.gaveCheck)this.data.traits.patient=clamp(this.data.traits.patient+0.2,0,100);
-      this.data.pending.push({f:`${fenKey(fen)} 0 1`,k:key,m:move,r:0,ply,side,at:now(),pred:0});
+      const captureValue={p:100,n:310,b:325,r:500,q:900}[meta.captured]||0;
+      let reward=meta.captured?0.6+Math.min(0.4,captureValue/3000):0;
+      if(meta.promotion)reward=Math.max(reward,0.8);
+      if(meta.gaveCheck)reward=Math.min(1,reward+0.15);
+      this.data.pending.push({f:`${fenKey(fen)} 0 1`,k:key,m:move,r:0,ply,side,at:now(),pred:0,after:chessAfter&&typeof chessAfter.fen==='function'?`${fenKey(chessAfter.fen())} 0 1`:null,reward:clamp(reward,0,1)});
       // V5's raw opening-frequency table is deliberately not extended: usage
       // alone is not evidence that a move was successful. Consequences are
       // recorded through delayed TD feedback and canonical position memory.
@@ -1067,29 +1073,123 @@
       for(const type of Object.keys(counts))this.data.geneticTrace[type]=(this.data.geneticTrace[type]||0)*0.94+counts[type]*0.06;
     }
 
-    resolveLastPetMove(chess){
-      // A reply resolves the temporal context, but does not train a retired JS
-      // learner. Final outcome feedback is applied to the same compact adapter
-      // that the C++/WASM engine reads.
+    resolveLastPetMove(chess,humanReply=null){
+      // Learn from the immediate consequence of the last move as well as the
+      // final result. A piece immediately captured on its landing square is a
+      // concrete lesson; it is not confused with unrelated captures elsewhere.
       let item=null;
       for(let i=this.data.pending.length-1;i>=0;i--)if(!this.data.pending[i].r){item=this.data.pending[i];break;}
       if(!item)return;
       item.r=1;
-      const entry=this.entry(item.k||item.f,item.m);
+      const entry=this.entry(item.k||item.f,item.m),destination=String(item.m||'').slice(2,4);
+      if(humanReply?.captured&&humanReply.to===destination){
+        const capturedValue={p:100,n:310,b:325,r:500,q:900}[humanReply.captured]||100;
+        item.reward=-1;
+        entry.score=clamp(entry.score-Math.max(3,Math.round(capturedValue/35)),-100,100);
+        entry.tactical=clamp((Number(entry.tactical)||0)+2,0,40);
+      }else if(humanReply&&chess&&typeof chess.game_over==='function'&&!chess.game_over()){
+        // Surviving a reply is recorded, but is not itself treated as a positive
+        // training label. Bond LoRA learns only from clear tactical contrasts.
+        entry.score=clamp(entry.score+1,-100,100);
+      }
       if(chess&&typeof chess.game_over==='function'&&chess.game_over())entry.outcomes++;
       this.save();
     }
 
+    developmentalProfile(){
+      // True natural progression: Game 0 is always a 100% pure baby (legal moves only).
+      // After Game 0, growth speed follows the player's actual skill (challengeRating)
+      // plus Bond learning steps—waking up fast for strong players and staying gentle
+      // for casual players instead of unlocking at a fixed game number.
+      const games=Math.max(0,Math.floor(Number(this.data.games)||0));
+      if(games===0)return {games,stage:0,label:'Hatchling · Piece mover',randomProbability:1,engineProbability:0};
+      const rating=clamp(Number(this.data.elo)||100,100,2400);
+      const bondSteps=Math.max(0,Number(this.data.dualLora?.bond?.steps)||0);
+      const ratingSignal=clamp((rating-100)/1100,0,1);
+      const bondSignal=clamp(bondSteps/18,0,1);
+      const gameSignal=clamp(games/50,0,1);
+      const maturity=clamp(0.55*ratingSignal+0.25*bondSignal+0.20*gameSignal,0,1);
+      const engineProbability=maturity<0.12?0:clamp(Math.pow((maturity-0.12)/0.88,1.35),0,1);
+      const randomProbability=clamp(0.90*Math.pow(1-maturity,2.2)+0.01,0.01,0.92);
+      const stage=Math.max(1,Math.min(11,Math.round(1+maturity*10)));
+      const labels=[
+        'Hatchling · Piece mover','Curious · Trying things out','Learner · Noticing captures',
+        'Beginner · Learning material safety','Beginner · Remembering lessons','Apprentice · Building patterns',
+        'Apprentice · Testing deeper ideas','Student · Mixing search and memory','Student · Planning ahead',
+        'Strategist · Growing consistency','Veteran · Refining its play','Veteran · Engine-trained'
+      ];
+      return {games,stage,maturity:Number(maturity.toFixed(3)),label:labels[stage],randomProbability:Number(randomProbability.toFixed(3)),engineProbability:Number(engineProbability.toFixed(3))};
+    }
+
+    chooseAdaptiveMove(chess,options={}){
+      if(!chess||chess.game_over())return {move:null,terminal:true,developmental:true};
+      const legal=chess.moves({verbose:true,skipSan:true});
+      if(!legal.length)return {move:null,terminal:true,developmental:true};
+      const profile=this.developmentalProfile(),random=typeof options.random==='function'?options.random:Math.random;
+      if(profile.engineProbability>0&&random()<profile.engineProbability)return null;
+      const pickRandom=()=>legal[Math.min(legal.length-1,Math.floor(random()*legal.length))];
+      if(profile.randomProbability>=1||random()<profile.randomProbability){
+        const move=pickRandom();
+        return {move:move.uci,developmental:true,developmentStage:profile.stage,developmentLabel:profile.label,selection:'legal-random',randomProbability:profile.randomProbability,nodes:0,depth:0};
+      }
+
+      const petSide=chess.turn(),pieceValue={p:100,n:310,b:325,r:500,q:900,k:20000};
+      const material=position=>{
+        let score=0;
+        for(const row of position.board())for(const piece of row)if(piece)score+=(piece.color===petSide?1:-1)*(pieceValue[piece.type]||0);
+        return score;
+      };
+      const positionKey=this.simplifyFen(chess.fen()),remembered=this.data.memory[positionKey]||{};
+      const ranked=[];
+      for(const move of legal){
+        let score=0;
+        chess.move(move.uci,{skipSan:true});
+        if(chess.inCheckmate())score=100000;
+        else if(chess.game_over())score=chess.result()==='draw'?0:-100000;
+        else{
+          score=material(chess);
+          // A very small creature learns first not to leave its pieces hanging.
+          // This is deliberately one reply deep, not V37 or a hidden search tree.
+          const replies=chess.moves({verbose:true,skipSan:true});
+          let largestImmediateLoss=0;
+          for(const reply of replies)if(reply.captured)largestImmediateLoss=Math.max(largestImmediateLoss,pieceValue[reply.captured]||0);
+          score-=largestImmediateLoss*(0.72+Math.min(0.18,profile.stage*0.025));
+          if(chess.inCheck())score+=10;
+          const file='abcdefgh'.indexOf(move.to[0]),rank=Number(move.to[1]);
+          const centre=7-(Math.abs(file-3.5)+Math.abs(rank-4.5));
+          score+=centre*1.1;
+          if(move.piece==='p')score+=(petSide==='w'?7-rank:rank-2)*1.8;
+          const lesson=remembered[move.uci];
+          if(lesson)score+=clamp(Number(lesson.score)||0,-100,100)*(0.035+profile.stage*0.012);
+          // Hatchlings do not inherit V37's full strength, but their own Bond
+          // adapter starts influencing candidate moves as soon as it has learned
+          // from real tactical contrasts. Only the adapter delta is used here.
+          if((this.data.dualLora?.bond?.steps||0)>0){
+            const learned=this.dualNnuePreferenceDelta(chess.fen(),petSide);
+            score+=learned*(1.8+profile.stage*0.35);
+          }
+        }
+        chess.undo();
+        ranked.push({move:move.uci,score});
+      }
+      ranked.sort((a,b)=>b.score-a.score);
+      const candidateCount=Math.max(1,Math.min(ranked.length,Math.round(8-profile.stage*1.1)));
+      const chosen=ranked[Math.min(candidateCount-1,Math.floor(random()*candidateCount))]||ranked[0];
+      return {move:chosen.move,developmental:true,developmentStage:profile.stage,developmentLabel:profile.label,selection:'material-and-memory',randomProbability:profile.randomProbability,candidateCount,nodes:0,depth:1};
+    }
+
     adaptiveSearchProfile(){
-      // Private challenge dial, not a measured chess Elo. Hatchlings begin with
-      // a deliberately small search budget; controlled results grow it gradually.
-      const rating=clamp(Number(this.data.elo)||100,100,2400),progress=(rating-100)/(2400-100);
-      const eased=progress*progress*(3-2*progress);
+      // Scales smoothly from 500 nodes / 65 ms (casual) up to 750,000 nodes / 2,200 ms (master/GM),
+      // driven primarily by challengeRating and experience so strong players unlock deep search naturally.
+      const rating=clamp(Number(this.data.elo)||100,100,2400),games=Math.max(0,Number(this.data.games)||0);
+      const ratingProgress=clamp((rating-100)/2300,0,1),experience=clamp(games/60,0,1)*0.45;
+      const progress=Math.max(ratingProgress,experience),eased=progress*progress*(3-2*progress);
       return {
-        challengeRating:rating,
-        maxNodes:Math.round(500+eased*120000),
-        maxTimeMs:Math.round(65+eased*655),
-        maxDepth:Math.round(1+eased*11)
+        challengeRating:rating,games,
+        maxNodes:Math.round(500+eased*749500),
+        maxTimeMs:Math.round(65+eased*2135),
+        maxDepth:Math.round(1+eased*17),
+        openingBookAllowed:rating>=700||(games>=25&&rating>=400)
       };
     }
 
@@ -1131,15 +1231,17 @@
 
     latestMemory(){
       const item=this.data.memories?.at(-1);if(!item)return '';
+      const moves=Math.max(1,Math.round((Number(item.plies)||2)/2));
+      const t=Number(item.tactical)||0;
       const messages={
-        'battle-win':'Won a trainer battle and kept the lesson',
-        'tactical-win':'Found a tactical breakthrough in a trainer battle',
-        'battle-loss':'Turned a tough trainer game into a lesson',
-        'tactical-lesson':'A tactical defeat became its newest lesson',
-        'draw':'Held the board to a draw',
-        'endurance-draw':'Stayed composed through a long drawn game'
+        'battle-win':`Won a ${moves}-move trainer battle and kept the lesson`,
+        'tactical-win':`Found ${t>1?t+' tactical strikes':'a sharp tactical breakthrough'} in a ${moves}-move win`,
+        'battle-loss':`Turned a tough ${moves}-move trainer game into a lesson`,
+        'tactical-lesson':`Studied a ${moves}-move tactical defeat (${t||'key'} sharp moment${t===1?'':'s'})`,
+        'draw':`Held a balanced ${moves}-move draw`,
+        'endurance-draw':`Stayed composed through a ${moves}-move endgame draw`
       };
-      return messages[item.kind]||'Added a new chess memory';
+      return messages[item.kind]||`Added a ${moves}-move chess memory`;
     }
 
     personality(){
@@ -1313,14 +1415,14 @@
       this.lastSearch=result;return result;
     }
 
-    dualNnueState(fen){
+    dualNnueState(fen,includeAdapters=true){
       const model=root.CheloDualNNUE?.model,C=Core();
       if(!model||!C)return null;
       let chess;try{chess=new C(fen);}catch{return null;}
-      const board=chess.board(),white=new Int32Array(32),black=new Int32Array(32);
-      for(let h=0;h<32;h++){
+      const board=chess.board(),white=new Int32Array(256),black=new Int32Array(256);
+      for(let h=0;h<256;h++){
         let dw=0,db=0;
-        for(const adapter of [this.data.dualLora.bond,this.data.dualLora.arena]){
+        for(const adapter of (includeAdapters?[this.data.dualLora.bond,this.data.dualLora.arena]:[])){
           let bondW=0,bondB=0;
           for(let k=0;k<adapter.rank;k++){bondW+=adapter.aW[h*adapter.rank+k]*adapter.b[k];bondB+=adapter.aB[h*adapter.rank+k]*adapter.b[k];}
           dw+=bondW>>adapter.shift;db+=bondB>>adapter.shift;
@@ -1334,39 +1436,184 @@
         const piece=board[r][c];if(!piece)continue;
         const sq=r*8+c,type=TYPE_CODE[piece.type],isWhite=piece.color==='w';
         const whiteCode=isWhite?type:type+6,blackCode=isWhite?type+6:type;
-        const wr=(sq*12+whiteCode-1)*32,br=((sq^56)*12+blackCode-1)*32;
-        for(let h=0;h<32;h++){white[h]=clamp(white[h]+model.whiteW[wr+h],-32768,32767);black[h]=clamp(black[h]+model.blackW[br+h],-32768,32767);}
+        const wr=(sq*12+whiteCode-1)*256,br=((sq^56)*12+blackCode-1)*256;
+        for(let h=0;h<256;h++){white[h]=clamp(white[h]+model.whiteW[wr+h],-32768,32767);black[h]=clamp(black[h]+model.blackW[br+h],-32768,32767);}
       }
       const side=chess.turn()==='b'?1:0,stm=side?black:white,nstm=side?white:black;
-      const gradStm=new Float32Array(32),gradNstm=new Float32Array(32),factor=1000/model.outputDivisor;
+      const gradStm=new Float32Array(256),gradNstm=new Float32Array(256),factor=1000/model.outputDivisor;
       let sum=model.outputB;
-      for(let h=0;h<32;h++){
-        const x=clamp(stm[h],0,255),y=clamp(nstm[h],0,255),ow=model.outputW[h],on=model.outputW[h+32];
+      for(let h=0;h<256;h++){
+        const x=clamp(stm[h],0,255),y=clamp(nstm[h],0,255),ow=model.outputW[h],on=model.outputW[h+256];
         sum+=x*x*ow+y*y*on;gradStm[h]=2*x*ow*factor;gradNstm[h]=2*y*on*factor;
       }
       return {score:Math.round(sum*factor),side,gradWhite:side?gradNstm:gradStm,gradBlack:side?gradStm:gradNstm};
     }
 
+    dualNnuePreferenceDelta(fen,petSide='b'){
+      if(!(this.data.dualLora?.bond?.steps||this.data.dualLora?.arena?.steps))return 0;
+      const base=this.dualNnueState(fen,false),adapted=this.dualNnueState(fen,true);
+      if(!base||!adapted)return 0;
+      const petCode=petSide==='b'?1:0,baseSign=base.side===petCode?1:-1,adaptedSign=adapted.side===petCode?1:-1;
+      return clamp(adapted.score*adaptedSign-base.score*baseSign,-120,120);
+    }
+
     trainDualAdapter(fen,target,petSide='b',layer='bond',importance=1,tactical=false){
       const adapter=this.data.dualLora?.[layer];if(!adapter)return {trained:false,reason:'unknown-layer'};
+      if(adapter.b[0]===0)adapter.b[0]=64;
+      if(adapter.rank===2&&tactical&&adapter.b[1]===0)adapter.b[1]=32;
+      adapter.shift=6;
       const state=this.dualNnueState(fen);if(!state)return {trained:false,reason:'shared-v37-unavailable'};
-      // The V37 evaluator is expressed from side-to-move. Convert the final
-      // outcome into that same perspective, then perform bounded sign-SGD on
-      // the low-rank integer adapter. No shared model weights are modified.
       const signedTarget=(state.side===(petSide==='b'?1:0)?target:-target),targetCp=signedTarget*220,error=targetCp-state.score;
       if(Math.abs(error)<8)return {trained:false,reason:'small-residual',score:state.score};
-      const rank=adapter.rank,channels=rank===2?(tactical?2:1):1;
-      adapter.shift=6;adapter.b[0]=64;if(rank===2)adapter.b[1]=64;
-      const updates=[];
-      const apply=(weights,gradient,channel,count)=>{
-        const ranked=Array.from({length:32},(_,h)=>({h,g:gradient[h],magnitude:Math.abs(gradient[h])})).sort((a,b)=>b.magnitude-a.magnitude).slice(0,count);
-        for(const item of ranked){if(item.magnitude<0.025)continue;const index=item.h*rank+channel,delta=Math.sign(error*item.g);if(!delta)continue;const before=weights[index];weights[index]=clamp(before+delta,-48,48);if(weights[index]!==before)updates.push({channel,h:item.h,delta});}
+      const strength=clamp(Number(importance)||1,0.1,8),count=clamp(Math.round(24*strength),8,128),step=Math.max(1,Math.min(4,Math.round(strength)));
+      const channels=adapter.rank===2&&tactical?2:1,updates=[];
+      const apply=(weights,gradient,channel)=>{
+        const factor=(Number(adapter.b[channel])||0)/64;
+        if(!factor)return;
+        const ranked=Array.from({length:256},(_,h)=>({h,g:gradient[h]*factor,magnitude:Math.abs(gradient[h]*factor)})).sort((a,b)=>b.magnitude-a.magnitude).slice(0,count);
+        for(const item of ranked){if(item.magnitude<0.025)continue;const index=item.h*adapter.rank+channel,delta=Math.sign(error*item.g)*step;if(!delta)continue;const before=weights[index];weights[index]=clamp(before+delta,-48,48);if(weights[index]!==before)updates.push({channel,h:item.h,delta});}
       };
-      apply(adapter.aW,state.gradWhite,0,channels===2?3:4);
-      apply(adapter.aB,state.gradBlack,0,channels===2?3:4);
-      if(channels===2){apply(adapter.aW,state.gradWhite,1,2);apply(adapter.aB,state.gradBlack,1,2);}
-      if(updates.length){adapter.steps=Math.min(65535,(adapter.steps||0)+1);}
-      return {trained:updates.length>0,updates:updates.length,score:state.score,target:targetCp,layer};
+      for(let channel=0;channel<channels;channel++){
+        apply(adapter.aW,state.gradWhite,channel);
+        apply(adapter.aB,state.gradBlack,channel);
+      }
+      if(updates.length)adapter.steps=Math.min(65535,(adapter.steps||0)+1);
+      return {trained:updates.length>0,updates:updates.length,score:state.score,target:targetCp,layer,importance:strength};
+    }
+
+    tacticalMovePairs(fen,petSide='b'){
+      const C=Core();if(!C)return {positive:[],negative:[]};
+      let position;try{position=new C(fen);}catch{return {positive:[],negative:[]};}
+      if(position.turn()!==petSide)return {positive:[],negative:[]};
+      const pieceValue={p:100,n:310,b:325,r:500,q:900,k:20000},positive=[],negative=[];
+      const legal=position.moves({verbose:true,skipSan:true});
+      for(const move of legal){
+        const before=position.fen();
+        if(!position.move(move.uci,{skipSan:true}))continue;
+        const after=`${fenKey(position.fen())} 0 1`;
+        let recaptured=false;
+        if(!position.game_over()){
+          const replies=position.moves({verbose:true,skipSan:true});
+          recaptured=replies.some(reply=>reply.captured&&reply.to===move.to);
+        }
+        let net=(pieceValue[move.captured]||0)+(move.promotion?Math.max(0,(pieceValue[move.promotion]||900)-100):0);
+        if(recaptured)net-=pieceValue[move.promotion||move.piece]||100;
+        if(position.inCheckmate())net=1000;
+        if(position.game_over()&&!position.inCheckmate())net=0;
+        const sample={after,net,move:move.uci,parent:before,side:petSide};
+        if(net>=100)positive.push(sample);else if(net<=-100)negative.push(sample);
+        position.undo();
+      }
+      return {positive,negative};
+    }
+
+    trainDualAdapterPairs(items,layer='bond'){
+      const adapter=this.data.dualLora?.[layer];
+      if(!adapter)return {trained:false,reason:'unknown-layer',pairs:0,positions:0,updates:0};
+      const parentGroups=[],parentSeen=new Set();
+      const sourceItems=(items||[]).filter(item=>item?.f);
+      const boundedItems=sourceItems.length<=16?sourceItems:Array.from({length:16},(_,i)=>sourceItems[Math.floor((i+0.5)*sourceItems.length/16)]);
+      for(const item of boundedItems){
+        if(!item?.f)continue;
+        const parentKey=compactMemoryKey(item.f);
+        if(parentSeen.has(parentKey))continue;
+        parentSeen.add(parentKey);
+        const side=item.side==='b'?'b':'w',group=this.tacticalMovePairs(item.f,side);
+        if(!group.positive.length||!group.negative.length)continue;
+        const positives=group.positive.sort((a,b)=>b.net-a.net).slice(0,4),negatives=group.negative.sort((a,b)=>a.net-b.net).slice(0,4);
+        // Form four cross-contrasts from the strongest captures and worst
+        // immediate hangs. Scoring every Cartesian combination adds little
+        // signal but makes match-end training unnecessarily expensive.
+        const count=Math.min(4,Math.max(positives.length,negatives.length)),pairs=[];
+        for(let i=0;i<count;i++){
+          const pi=Math.min(positives.length-1,Math.floor(i*positives.length/count));
+          const ni=Math.min(negatives.length-1,Math.floor((count-1-i)*negatives.length/count));
+          const positive=positives[pi],negative=negatives[ni];
+          if(positive&&negative)pairs.push({positive,negative,petSide:side,importance:clamp(Math.min(Math.abs(positive.net),Math.abs(negative.net))/300,0.5,2)});
+        }
+        // Mine the most confusing contrasts under the current adapter. These
+        // are the examples where this pet most needs a better preference signal.
+        const scoreCache=new Map(),scoreFen=fen=>{if(!scoreCache.has(fen)){const state=this.dualNnueState(fen);scoreCache.set(fen,state?(state.side===(side==='b'?1:0)?state.score:-state.score):0);}return scoreCache.get(fen);};
+        for(const pair of pairs)pair.margin=scoreFen(pair.positive.after)-scoreFen(pair.negative.after);
+        pairs.sort((a,b)=>a.margin-b.margin);
+        const sampled=pairs.slice(0,Math.min(4,pairs.length));
+        if(sampled.length)parentGroups.push({key:parentKey,pairs:sampled});
+      }
+      if(!parentGroups.length)return {trained:false,reason:'no-clear-tactical-pairs',pairs:0,positions:0,updates:0};
+
+      // Keep whole parent positions together. One fifth of positions are held
+      // out from the gradient and used only to decide whether the update stays.
+      let trainingGroups=parentGroups.filter(group=>(hash32(group.key)%5)!==0);
+      let validationGroups=parentGroups.filter(group=>(hash32(group.key)%5)===0);
+      if(parentGroups.length===1){trainingGroups=parentGroups;validationGroups=[];}
+      else if(parentGroups.length>=5&&!validationGroups.length){validationGroups=[parentGroups[parentGroups.length-1]];trainingGroups=parentGroups.slice(0,-1);}
+      if(!trainingGroups.length&&parentGroups.length>1){trainingGroups=parentGroups.slice(0,-1);validationGroups=[parentGroups[parentGroups.length-1]];}
+      const trainingPairs=[];
+      for(let round=0;trainingPairs.length<48;round++){
+        let added=false;
+        for(const group of trainingGroups){if(round<group.pairs.length&&trainingPairs.length<48){trainingPairs.push(group.pairs[round]);added=true;}}
+        if(!added)break;
+      }
+      const validationPairs=validationGroups.flatMap(group=>group.pairs);
+      if(!trainingPairs.length)return {trained:false,reason:'insufficient-training-positions',pairs:0,positions:0,updates:0};
+
+      if(adapter.b[0]===0)adapter.b[0]=64;
+      adapter.shift=6;
+      const evaluatePairs=pairs=>{
+        if(!pairs.length)return {loss:0,margin:0,count:0};
+        const cache=new Map(),stateFor=fen=>{if(!cache.has(fen))cache.set(fen,this.dualNnueState(fen));return cache.get(fen);};
+        let loss=0,marginTotal=0,count=0;
+        for(const pair of pairs){
+          const ps=stateFor(pair.positive.after),ns=stateFor(pair.negative.after);if(!ps||!ns)continue;
+          const petCode=pair.petSide==='b'?1:0,pSign=ps.side===petCode?1:-1,nSign=ns.side===petCode?1:-1;
+          const margin=pSign*ps.score-nSign*ns.score,z=clamp((60-margin)/120,-12,12);
+          loss+=Math.log1p(Math.exp(z));marginTotal+=margin;count++;
+        }
+        return {loss:count?loss/count:0,margin:count?marginTotal/count:0,count};
+      };
+      const baselineValidation=validationPairs.length?evaluatePairs(validationPairs):null;
+      const stateCache=new Map(),stateFor=fen=>{if(!stateCache.has(fen))stateCache.set(fen,this.dualNnueState(fen));return stateCache.get(fen);};
+      const sumW=Array.from({length:adapter.rank},()=>new Float64Array(256)),sumB=Array.from({length:adapter.rank},()=>new Float64Array(256));
+      let totalImportance=0,used=0;const participating=new Set();
+      for(const pair of trainingPairs){
+        const ps=stateFor(pair.positive.after),ns=stateFor(pair.negative.after);if(!ps||!ns)continue;
+        const petCode=pair.petSide==='b'?1:0,pSign=ps.side===petCode?1:-1,nSign=ns.side===petCode?1:-1;
+        const margin=pSign*ps.score-nSign*ns.score,targetMargin=60,temperature=120,z=clamp((targetMargin-margin)/temperature,-8,8),factor=(1/(1+Math.exp(-z)))/temperature;
+        const importance=clamp(Number(pair.importance)||1,0.25,2);
+        for(let channel=0;channel<adapter.rank;channel++){
+          const scale=(Number(adapter.b[channel])||0)/64;if(!scale)continue;
+          for(let h=0;h<256;h++){
+            sumW[channel][h]+=factor*(pSign*ps.gradWhite[h]-nSign*ns.gradWhite[h])*importance*scale;
+            sumB[channel][h]+=factor*(pSign*ps.gradBlack[h]-nSign*ns.gradBlack[h])*importance*scale;
+          }
+        }
+        totalImportance+=importance;used++;participating.add(pair.positive.after);participating.add(pair.negative.after);
+      }
+      if(!used)return {trained:false,reason:'no-valid-position-pairs',pairs:0,positions:0,updates:0};
+
+      // Apply bounded candidate updates, then retain them only when a separate
+      // set of parent positions improves its pairwise logistic loss. Backoff
+      // prevents one lucky match from pushing a persistent adapter too far.
+      const originalW=new Int8Array(adapter.aW),originalB=new Int8Array(adapter.aB),scales=validationPairs.length?[1,0.5,0.25,0.125,0.0625]:[0.25];
+      const learningRate=1200,weightDecay=0.003;
+      let acceptedScale=0,updates=0,validationAfter=baselineValidation;
+      for(const scale of scales){
+        adapter.aW.set(originalW);adapter.aB.set(originalB);updates=0;
+        for(let channel=0;channel<adapter.rank;channel++)for(let h=0;h<256;h++){
+          for(const [weights,gradient] of [[adapter.aW,sumW[channel][h]],[adapter.aB,sumB[channel][h]]]){
+            const index=h*adapter.rank+channel,raw=learningRate*(gradient/totalImportance)-weightDecay*weights[index];
+            const delta=clamp(Math.round(raw*scale),-2,2);
+            if(!delta)continue;const before=weights[index];weights[index]=clamp(before+delta,-48,48);if(weights[index]!==before)updates++;
+          }
+        }
+        if(!updates)continue;
+        if(!validationPairs.length){acceptedScale=scale;break;}
+        validationAfter=evaluatePairs(validationPairs);
+        if(validationAfter.count&&validationAfter.loss<baselineValidation.loss-0.00001){acceptedScale=scale;break;}
+      }
+      if(!acceptedScale){adapter.aW.set(originalW);adapter.aB.set(originalB);updates=0;return {trained:false,reason:'validation-rejected-update',pairs:used,positions:participating.size,updates:0,validationBefore:baselineValidation?.loss??null,validationAfter:validationAfter?.loss??null,parents:parentGroups.length};}
+      adapter.steps=Math.min(65535,(adapter.steps||0)+1);
+      return {trained:true,pairs:used,positions:participating.size,updates,layer,importance:totalImportance,parents:parentGroups.length,validationBefore:baselineValidation?.loss??null,validationAfter:validationAfter?.loss??null,acceptedScale};
     }
 
     outcomeFor(item,winner){return winner==='draw'?0:winner===item.side?0.95:-0.95;}
@@ -1377,27 +1624,26 @@
       const result=finalPosition&&typeof finalPosition.result==='function'?finalPosition.result():null;
       const winner=result==='w'||result==='b'?result:result==='draw'?'draw':(outcome==='win'?'b':outcome==='loss'?'w':'draw');
       const layer='bond';
-      const training={updatedPositions:0,updatedCoefficients:0,skippedPositions:0,skipReasons:{}};
-      {
-        for(const item of this.data.pending){
-          const target=this.outcomeFor(item,winner),entry=this.entry(item.f,item.m),importance=1+Math.min(0.5,(Number(entry.tactical)||0)/20);
-          const update=this.trainDualAdapter(item.f,target,item.side,layer,importance,(Number(entry.tactical)||0)>0);
-          if(update?.trained){training.updatedPositions++;training.updatedCoefficients+=Number(update.updates)||0;}
-          else{training.skippedPositions++;const reason=update?.reason||'no-coefficient-change';training.skipReasons[reason]=(training.skipReasons[reason]||0)+1;}
-          entry.score=clamp(entry.score+(target>0?4:target<0?-4:1),-100,100);
-          entry.outcomes++;
-          entry.last=now();
-        }
-        this.data.games++;
-        if(outcome==='win')this.data.wins++;else if(outcome==='loss')this.data.losses++;else this.data.draws++;
-        this.data.xp=Math.max(0,this.data.xp)+Math.max(1,this.data.pending.length);
-        this.data.gen=1+Math.floor(this.data.xp/80);
+      const tacticalTraining=this.trainDualAdapterPairs(this.data.pending,layer);
+      const training={updatedPositions:tacticalTraining.positions||0,updatedCoefficients:tacticalTraining.updates||0,trainedPairs:tacticalTraining.pairs||0,skippedPositions:Math.max(0,this.data.pending.length-(tacticalTraining.parents||0)),validationLossBefore:tacticalTraining.validationBefore??null,validationLossAfter:tacticalTraining.validationAfter??null,acceptedScale:tacticalTraining.acceptedScale||0,trainingParents:tacticalTraining.parents||0,skipReasons:{}};
+      if(!tacticalTraining.trained)training.skipReasons[tacticalTraining.reason||'no-learning-pairs']=this.data.pending.length;
+      for(const item of this.data.pending){
+        const target=this.outcomeFor(item,winner),entry=this.entry(item.f,item.m);
+        // Match outcome still informs episodic memory and challenge calibration,
+        // but does not directly push the evaluator from noisy game-level labels.
+        entry.score=clamp(entry.score+(target>0?4:target<0?-4:1),-100,100);
+        entry.outcomes++;
+        entry.last=now();
       }
+      this.data.games++;
+      if(outcome==='win')this.data.wins++;else if(outcome==='loss')this.data.losses++;else this.data.draws++;
+      this.data.xp=Math.max(0,this.data.xp)+Math.max(1,this.data.pending.length);
+      this.data.gen=1+Math.floor(this.data.xp/80);
       const memory=this.recordMatchMemory(outcome,finalPosition);
       const challenge=this.updateAdaptiveChallenge(outcome);
       this.data.pending=[];
       this.save();
-      return {trained:training.updatedPositions>0,layer:'bond',memory,updates:this.data.dualLora.bond.steps,challenge,...training};
+      return {trained:!!tacticalTraining.trained,layer:'bond',memory,updates:this.data.dualLora.bond.steps,challenge,...training};
     }
 
     resetPending(){this.data.pending=[];this.data.geneticTrace={p:0,n:0,b:0,r:0,q:0};this.data.lastHumanMove=null;this.save();}

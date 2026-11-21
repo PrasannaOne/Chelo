@@ -39,7 +39,7 @@ export function validateCheloText(text, expectedPlan, expectedAccountId, expecte
     if (!pet || typeof pet.id !== 'string' || !pet.id || ids.has(pet.id) || !pet.data || pet.data.v !== 16 || !Array.isArray(pet.data.i) || pet.data.i.length!==8 || !Array.isArray(pet.data.t) || pet.data.t.length!==3 || !pet.data.dl || !Array.isArray(pet.data.m) || !Array.isArray(pet.data.u)) throw new Error('A .chelo pet record is malformed or duplicated.');
     ids.add(pet.id);
     if (['n','la','r','model','weights','policy','replay','v14Adapter','humanOpenings','openingReplies'].some(key=>Object.prototype.hasOwnProperty.call(pet.data,key))) throw new Error('Legacy learner/replay/shared-model payloads are not accepted in the compact .chelo format.');
-    const adapterOk=(value,rank)=>{if(typeof value!=='string'||!/^[A-Za-z0-9+/]+={0,2}$/.test(value))return false;try{const raw=atob(value);return raw.length===4+65*rank&&raw.charCodeAt(0)===rank&&raw.charCodeAt(1)<=14;}catch{return false;}};
+    const adapterOk=(value,rank)=>{if(typeof value!=='string'||!/^[A-Za-z0-9+/]+={0,2}$/.test(value))return false;try{const raw=atob(value);return raw.length===4+513*rank&&raw.charCodeAt(0)===rank&&raw.charCodeAt(1)<=14;}catch{return false;}};
     if(!adapterOk(pet.data.dl.bond,1)||!adapterOk(pet.data.dl.arena,2))throw new Error('A .chelo Bond/Arena adapter is malformed.');
     const size = encoder.encode(JSON.stringify(pet.data)).byteLength;
     const petLimit = expectedPlan === 'pro' ? PRO_PET_BYTES : FREE_PET_BYTES;

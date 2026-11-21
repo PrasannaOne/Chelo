@@ -35,7 +35,7 @@ const fresh=new Brain('smoke',{persist:false});
 assert(fresh.plan==='free'&&fresh.limit===97*1024,'Free pet payload must reserve room inside the 100 KiB whole-player file.');
 assert(fresh.size()<fresh.limit,'Fresh V16 pet record does not fit its Free allocation.');
 const freshChelo=context.window.CheloSave.encode({plan:'free',player:{id:'local-player',settings:{}},pets:[{id:'pet-1',data:fresh.compactData()}]});
-assert(freshChelo.bytes.byteLength<2048,'Fresh .chelo should not duplicate hosted models or legacy learner tensors.');
+assert(freshChelo.bytes.byteLength<4096,'Fresh .chelo should not duplicate hosted models or legacy learner tensors.');
 assert(context.window.CheloSave.constants.FREE_FILE_BYTES===102400&&context.window.CheloSave.constants.FREE_PET_BYTES===99328,'Whole-file Free cap must be 100 KiB with the 97 KiB pet allocation.');
 assert(fresh.data.model.w1.length===context.window.CHESSLING_MODEL_INPUTS*context.window.CHESSLING_MODEL_HIDDEN,'Unexpected V6 value model dimensions.');
 assert(context.window.CHESSLING_MODEL_VECTOR_SIZE===80,'V6 sparse feature vector must be 80 compact values.');
@@ -53,7 +53,7 @@ assert(html.includes('Chelo')&&html.includes('chelo')&&!html.includes('Chessling
 assert(!html.includes('Practice mode')&&!html.includes('Start practice')&&!html.includes('practiceStatus'),'Retired self-play/Practice UI must not reappear.');
 assert(html.includes('Mastery')&&html.includes('Arena rank')&&!html.includes('Growth Elo'),'Public UI must separate Growth, Mastery and Arena rank rather than display Elo.');
 const sw=fs.readFileSync(path.join(__dirname,'..','sw.js'),'utf8');
-for(const asset of ['index.html','assets/style.css','src/engine/polyglot-random.js','models/polyglot-book.bin','src/engine/chess.js','src/soul/chelo-save.js','src/soul/brain.js','src/app/app.js','src/worker/ai-worker.js','src/engine/fast-search.js','assets/pieces.svg','models/base-v14-float32.json','models/dual-nnue-v37.bin'])assert(sw.includes(`'./${asset}'`),`PWA cache missing ${asset}`);
+for(const asset of ['index.html','assets/style.css','src/engine/polyglot-random.js','models/polyglot-book.bin','src/engine/chess.js','src/soul/chelo-save.js','src/soul/brain.js','src/app/app.js','src/worker/ai-worker.js','src/engine/fast-search.js','assets/pieces.svg','models/base-v14-float32.json','models/dual-nnue-v38-256.bin'])assert(sw.includes(`'./${asset}'`),`PWA cache missing ${asset}`);
 console.log('Chelo chess-core and UI smoke tests passed.');
 console.log('Perft: start 20/400/8902/197281; Kiwipete 48/2039/97862; positions 3–6 verified.');
 console.log(`V6 model: ${context.window.CHESSLING_MODEL_INPUTS} expanded feature weights · ${context.window.CHESSLING_MODEL_HIDDEN} hidden units · ${context.window.CHESSLING_MODEL_PARAMETERS} parameters; legal search and mate-in-one passed.`);

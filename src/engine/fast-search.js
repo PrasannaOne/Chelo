@@ -128,10 +128,10 @@
       this.fUndoSide=new Int8Array(maxPly*UNDO_FEATURES_PER_PLY);this.fUndoIndex=new Int16Array(maxPly*UNDO_FEATURES_PER_PLY);this.fUndoBefore=new Uint8Array(maxPly*UNDO_FEATURES_PER_PLY);this.fUndoAfter=new Uint8Array(maxPly*UNDO_FEATURES_PER_PLY);this.fUndoGlobal=new Uint8Array(maxPly*UNDO_FEATURES_PER_PLY);
       this.accFeaturesW=new Uint8Array(80);this.accFeaturesB=new Uint8Array(80);this.accPreW=new Int32Array(48);this.accPreB=new Int32Array(48);this.changedSquares=new Int16Array(maxPly*5);
       // Stage 3.6: two independent 32-unit perspectives and 128 preallocated ply frames.
-      this.dualAccW=new Int16Array(128*32);this.dualAccB=new Int16Array(128*32);
+      this.dualAccW=new Int16Array(128*256);this.dualAccB=new Int16Array(128*256);
       this.dualFeaturesW=new Uint8Array(64);this.dualFeaturesB=new Uint8Array(64);
       this.dualUndoCount=new Uint8Array(maxPly);this.dualUndoSide=new Int8Array(maxPly*10);this.dualUndoIndex=new Int8Array(maxPly*10);this.dualUndoBefore=new Uint8Array(maxPly*10);
-      this.dualBiasW=new Int16Array(32);this.dualBiasB=new Int16Array(32);this.dualModel=null;this.dualReady=false;this.dualEvalCount=0;this.dualMaxAbsAccumulator=0;
+      this.dualBiasW=new Int16Array(256);this.dualBiasB=new Int16Array(256);this.dualModel=null;this.dualReady=false;this.dualEvalCount=0;this.dualMaxAbsAccumulator=0;
       this.qW1=QMODEL_W1;this.qB1=QMODEL_B1;this.qW2=QMODEL_W2;this.qB2=QMODEL_B2;this.qWOut=QMODEL_WOUT;this.qBOut=QMODEL_BOUT;this.qModelReady=false;
       this.hashHi0=0;this.hashHi1=0;this.hashLo0=0;this.hashLo1=0;this.hashEp=-1;this.nullDepth=0;this.computeHash();
       this.rep=new RepetitionTable(8192);this.model=model||null;
@@ -180,16 +180,16 @@
       }
     }
     initDualAccumulator(model,adapters){
-      if(!model||model.features!==768||model.hidden!==32||model.whiteW.length!==768*32||model.blackW.length!==768*32)throw new Error('Invalid Stage 3.6 dual-perspective model.');
+      if(!model||model.features!==768||model.hidden!==256||model.whiteW.length!==768*256||model.blackW.length!==768*256)throw new Error('Invalid Stage 3.6 dual-perspective model.');
       this.dualModel=model;this.dualReady=true;this.dualEvalCount=0;this.dualMaxAbsAccumulator=0;
       this.dualFeaturesW.fill(0);this.dualFeaturesB.fill(0);this.dualBiasW.fill(0);this.dualBiasB.fill(0);
       const addAdapter=(adapter)=>{
         if(!adapter)return;const rank=adapter.rank|0,shift=adapter.shift|0;
-        if((rank!==1&&rank!==2)||shift<0||shift>14||!adapter.aW||!adapter.aB||!adapter.b||adapter.aW.length!==32*rank||adapter.aB.length!==32*rank||adapter.b.length!==rank)return;
-        for(let h=0;h<32;h++){let dw=0,db=0;for(let k=0;k<rank;k++){dw+=(adapter.aW[h*rank+k]|0)*(adapter.b[k]|0);db+=(adapter.aB[h*rank+k]|0)*(adapter.b[k]|0);}this.dualBiasW[h]=(this.dualBiasW[h]+(dw>>shift))|0;this.dualBiasB[h]=(this.dualBiasB[h]+(db>>shift))|0;}
+        if((rank!==1&&rank!==2)||shift<0||shift>14||!adapter.aW||!adapter.aB||!adapter.b||adapter.aW.length!==256*rank||adapter.aB.length!==256*rank||adapter.b.length!==rank)return;
+        for(let h=0;h<256;h++){let dw=0,db=0;for(let k=0;k<rank;k++){dw+=(adapter.aW[h*rank+k]|0)*(adapter.b[k]|0);db+=(adapter.aB[h*rank+k]|0)*(adapter.b[k]|0);}this.dualBiasW[h]=(this.dualBiasW[h]+(dw>>shift))|0;this.dualBiasB[h]=(this.dualBiasB[h]+(db>>shift))|0;}
       };
       addAdapter(adapters&&adapters.bond);addAdapter(adapters&&adapters.arena);
-      for(let h=0;h<32;h++){
+      for(let h=0;h<256;h++){
         this.dualAccW[h]=clamp((model.whiteB[h]|0)+this.dualBiasW[h],-32768,32767);
         this.dualAccB[h]=clamp((model.blackB[h]|0)+this.dualBiasB[h],-32768,32767);
       }
@@ -197,14 +197,14 @@
         const piece=this.b[M88[sq]];if(!piece)continue;const type=TYPE(piece),pieceColor=color(piece);
         const codeW=pieceColor===0?type:type+6,relW=sq,codeB=pieceColor===1?type:type+6,relB=sq^56;
         this.dualFeaturesW[relW]=codeW;this.dualFeaturesB[relB]=codeB;
-        const rowW=(relW*12+codeW-1)*32,rowB=(relB*12+codeB-1)*32;
-        for(let h=0;h<32;h++){this.dualAccW[h]=clamp(this.dualAccW[h]+model.whiteW[rowW+h],-32768,32767);this.dualAccB[h]=clamp(this.dualAccB[h]+model.blackW[rowB+h],-32768,32767);}
+        const rowW=(relW*12+codeW-1)*256,rowB=(relB*12+codeB-1)*256;
+        for(let h=0;h<256;h++){this.dualAccW[h]=clamp(this.dualAccW[h]+model.whiteW[rowW+h],-32768,32767);this.dualAccB[h]=clamp(this.dualAccB[h]+model.blackW[rowB+h],-32768,32767);}
       }
-      for(let h=0;h<32;h++){const aw=Math.abs(this.dualAccW[h]),ab=Math.abs(this.dualAccB[h]);if(aw>this.dualMaxAbsAccumulator)this.dualMaxAbsAccumulator=aw;if(ab>this.dualMaxAbsAccumulator)this.dualMaxAbsAccumulator=ab;}
+      for(let h=0;h<256;h++){const aw=Math.abs(this.dualAccW[h]),ab=Math.abs(this.dualAccB[h]);if(aw>this.dualMaxAbsAccumulator)this.dualMaxAbsAccumulator=aw;if(ab>this.dualMaxAbsAccumulator)this.dualMaxAbsAccumulator=ab;}
     }
     updateDualAccumulator(ply,changedCount,changedSquares,offset){
-      const model=this.dualModel,whiteW=model.whiteW,blackW=model.blackW,whiteAcc=this.dualAccW,blackAcc=this.dualAccB,src=ply*32,dst=(ply+1)*32;
-      whiteAcc.copyWithin(dst,src,src+32);blackAcc.copyWithin(dst,src,src+32);
+      const model=this.dualModel,whiteW=model.whiteW,blackW=model.blackW,whiteAcc=this.dualAccW,blackAcc=this.dualAccB,src=ply*256,dst=(ply+1)*256;
+      whiteAcc.copyWithin(dst,src,src+256);blackAcc.copyWithin(dst,src,src+256);
       let count=0;const undoBase=ply*10;
       for(let j=0;j<changedCount;j++){
         const sq=changedSquares[offset+j],piece=this.b[M88[sq]],type=piece?TYPE(piece):0,pieceColor=piece?color(piece):-1;
@@ -212,28 +212,28 @@
         const relW=sq,relB=sq^56;
         let before=this.dualFeaturesW[relW];
         if(before!==codeW){
-          const at=undoBase+count++,row=relW*12,oldRow=(row+before-1)*32,newRow=(row+codeW-1)*32;
+          const at=undoBase+count++,row=relW*12,oldRow=(row+before-1)*256,newRow=(row+codeW-1)*256;
           this.dualUndoSide[at]=0;this.dualUndoIndex[at]=relW;this.dualUndoBefore[at]=before;
-          for(let h=0;h<32;h++){let v=whiteAcc[dst+h];if(before)v-=whiteW[oldRow+h];if(codeW)v+=whiteW[newRow+h];whiteAcc[dst+h]=v>32767?32767:v< -32768?-32768:v;}
+          for(let h=0;h<256;h++){let v=whiteAcc[dst+h];if(before)v-=whiteW[oldRow+h];if(codeW)v+=whiteW[newRow+h];whiteAcc[dst+h]=v>32767?32767:v< -32768?-32768:v;}
           this.dualFeaturesW[relW]=codeW;
         }
         before=this.dualFeaturesB[relB];
         if(before!==codeB){
-          const at=undoBase+count++,row=relB*12,oldRow=(row+before-1)*32,newRow=(row+codeB-1)*32;
+          const at=undoBase+count++,row=relB*12,oldRow=(row+before-1)*256,newRow=(row+codeB-1)*256;
           this.dualUndoSide[at]=1;this.dualUndoIndex[at]=relB;this.dualUndoBefore[at]=before;
-          for(let h=0;h<32;h++){let v=blackAcc[dst+h];if(before)v-=blackW[oldRow+h];if(codeB)v+=blackW[newRow+h];blackAcc[dst+h]=v>32767?32767:v< -32768?-32768:v;}
+          for(let h=0;h<256;h++){let v=blackAcc[dst+h];if(before)v-=blackW[oldRow+h];if(codeB)v+=blackW[newRow+h];blackAcc[dst+h]=v>32767?32767:v< -32768?-32768:v;}
           this.dualFeaturesB[relB]=codeB;
         }
       }
       this.dualUndoCount[ply]=count;
-      for(let h=0;h<32;h++){const aw=Math.abs(whiteAcc[dst+h]),ab=Math.abs(blackAcc[dst+h]);if(aw>this.dualMaxAbsAccumulator)this.dualMaxAbsAccumulator=aw;if(ab>this.dualMaxAbsAccumulator)this.dualMaxAbsAccumulator=ab;}
+      for(let h=0;h<256;h++){const aw=Math.abs(whiteAcc[dst+h]),ab=Math.abs(blackAcc[dst+h]);if(aw>this.dualMaxAbsAccumulator)this.dualMaxAbsAccumulator=aw;if(ab>this.dualMaxAbsAccumulator)this.dualMaxAbsAccumulator=ab;}
     }
     restoreDualAccumulator(ply){
       const base=ply*10,count=this.dualUndoCount[ply];
       for(let j=count-1;j>=0;j--){const at=base+j,side=this.dualUndoSide[at],index=this.dualUndoIndex[at],before=this.dualUndoBefore[at];if(side===0)this.dualFeaturesW[index]=before;else this.dualFeaturesB[index]=before;}
       this.dualUndoCount[ply]=0;
     }
-    copyDualAccumulatorToChild(ply){const src=ply*32,dst=(ply+1)*32;this.dualAccW.copyWithin(dst,src,src+32);this.dualAccB.copyWithin(dst,src,src+32);this.dualUndoCount[ply]=0;}
+    copyDualAccumulatorToChild(ply){const src=ply*256,dst=(ply+1)*256;this.dualAccW.copyWithin(dst,src,src+256);this.dualAccB.copyWithin(dst,src,src+256);this.dualUndoCount[ply]=0;}
     writeGlobals(side,f){const opp=side^1,r=this.rights;f[64]=this.side===side?1:0;
       f[65]=!!(r&(side===0?RIGHT_K:RIGHT_k))?1:0;f[66]=!!(r&(side===0?RIGHT_Q:RIGHT_q))?1:0;
       f[67]=!!(r&(opp===0?RIGHT_K:RIGHT_k))?1:0;f[68]=!!(r&(opp===0?RIGHT_Q:RIGHT_q))?1:0;
@@ -445,9 +445,9 @@
     qModelSource=model;qAdapterSource=adapter;qAdapterSteps=steps;qModelV14=!!isV14;qModelCached=true;
   }
   function dualScalarValue(board,ply){
-    const model=board.dualModel,base=ply*32,stm=board.side===0?board.dualAccW:board.dualAccB,nstm=board.side===0?board.dualAccB:board.dualAccW,weights=model.outputW;let sum=model.outputB|0;
-    for(let h=0;h<32;h++){let x=stm[base+h]|0;if(x<0)x=0;else if(x>255)x=255;const activation=x*x;sum+=activation*(weights[h]|0);}
-    for(let h=0;h<32;h++){let x=nstm[base+h]|0;if(x<0)x=0;else if(x>255)x=255;const activation=x*x;sum+=activation*(weights[32+h]|0);}
+    const model=board.dualModel,base=ply*256,stm=board.side===0?board.dualAccW:board.dualAccB,nstm=board.side===0?board.dualAccB:board.dualAccW,weights=model.outputW;let sum=model.outputB|0;
+    for(let h=0;h<256;h++){let x=stm[base+h]|0;if(x<0)x=0;else if(x>255)x=255;const activation=x*x;sum+=activation*(weights[h]|0);}
+    for(let h=0;h<256;h++){let x=nstm[base+h]|0;if(x<0)x=0;else if(x>255)x=255;const activation=x*x;sum+=activation*(weights[256+h]|0);}
     board.dualEvalCount++;return Math.round((sum*1000)/model.outputDivisor)|0;
   }
   function scalarValue(brain,board,ply){

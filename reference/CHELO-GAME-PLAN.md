@@ -81,3 +81,12 @@ See `UI-REFERENCE-CHECKLIST.md` for historical design inspiration, not an instru
 - SHA-256: `f9ffe3f0dc641c93be26f871086182a82291411a4e4b59c073fcc7c8bfc4022e`
 
 M4 does not change the C++ engine or V37 model. Engine upgrades are a separate next milestone.
+
+
+## 9. Developmental learning and match guardrails
+
+A newly created pet begins as a legal-move learner, not a reduced-budget copy of the mature engine. With zero completed trainer games, its move selector samples uniformly from legal moves and bypasses V37 evaluation/search and the opening book. Across the first 11 games it gradually introduces simple capture/material awareness and position/move memories; V37 search starts blending into move selection at game 12 and reaches full selection only after sustained play. At four to five games the pet should be a noticeably improving beginner while remaining intentionally beatable.
+
+Trainer outcomes update Bond when the pinned V37 residual supports learning. Immediate capture of a piece on the square Chelo just moved to gives that exact position/move an additional negative signal. These mechanisms must be validated as behavioural improvements, not presented as a certified Elo rating without paired match data.
+
+In casual single-player play, Chelo auto-claims a draw when threefold repetition or the 50-move threshold becomes claimable, preventing endless shuffle games. The rules core retains FIDE's distinction between claimable threefold/50-move draws and automatic fivefold/75-move draws; checkmate takes precedence over the 75-move rule.

@@ -1,0 +1,42 @@
+{
+  "format": "Chelo Stage 3.8 Dual-Perspective NNUE C36N (256-neuron)",
+  "version": 1,
+  "architecture": "(768 -> 256) x 2 -> side-to-move concatenation -> SCReLU -> 512 -> 1",
+  "features": 768,
+  "hiddenPerPerspective": 256,
+  "activation": "clamp(x,0,255)^2",
+  "blackPerspective": "vertical rank flip + color swap",
+  "accumulator": "Int16Array(256) per perspective, preallocated MAX_PLY=128",
+  "quantization": {
+    "transformer": "Int8",
+    "bias": "Int16",
+    "output": "Int8",
+    "outputBias": "Int32",
+    "outputDivisor": 1048576,
+    "byteOrder": "little-endian"
+  },
+  "binaryBytes": 394776,
+  "binarySha256": "e14650d8f4ff79eb0197ab06fa7f6f370d53cc019289fde6f103e367db257826",
+  "training": {
+    "device": "Kaggle GPU T4 x2",
+    "dataset": "Lichess/chess-position-evaluations (shuffled, depth >= 16)",
+    "positions": 5000000,
+    "schedule": "12 epochs Float32 + 4 epochs QAT",
+    "finalValMaeCp": 251.4,
+    "sanity": {
+      "startposWhiteCp": 39,
+      "whitePlusQueenWhiteCp": 596,
+      "whitePlusQueenBlackCp": -483,
+      "blackPlusQueenWhiteCp": -476,
+      "blackPlusQueenBlackCp": 568
+    }
+  },
+  "compatibility": {
+    "stage": "3.8",
+    "bondLoraRank": 1,
+    "bondAdapterBytes": 517,
+    "arenaLoraRank": 2,
+    "arenaAdapterBytes": 1030
+  },
+  "binary": "dual-nnue-v38-256.bin"
+}

@@ -10,7 +10,7 @@ vm.createContext(context);
 for(const file of ['src/engine/polyglot-random.js','src/engine/chess.js','src/engine/endgame-kpk.js','src/engine/fast-search.js','src/nnue/dual-nnue.js','src/soul/chelo-save.js','src/soul/brain.js'])vm.runInContext(fs.readFileSync(path.join(base,file),'utf8'),context,{filename:file});
 const Brain=root.CheloBrain,Save=root.CheloSave;
 const checkpoint=JSON.parse(fs.readFileSync(path.join(base,'models/base-v14-float32.json'),'utf8'));
-const raw=fs.readFileSync(path.join(base,'models/dual-nnue-v37.bin'));
+const raw=fs.readFileSync(path.join(base,'models/dual-nnue-v38-256.bin'));
 const model=root.CheloDualNNUE.parse(raw.buffer.slice(raw.byteOffset,raw.byteOffset+raw.byteLength));
 root.CheloDualNNUE.model=model;
 const moveSequence=['e2e4','e7e5','g1f3','b8c6','f1b5','a7a6','b5c6','d7c6','a2a4','b7b5','a4b5'];
@@ -32,7 +32,7 @@ function addSyntheticMemories(brain,count){
 const fresh=makeBrain('free','fresh-free');
 const freshDoc={plan:'free',player,pets:[{id:'pet-free',data:fresh.compactData()}]};
 const freshExport=Save.encode(freshDoc);
-assert(freshExport.bytes.byteLength<2048,`Fresh Free .chelo should stay tiny, got ${freshExport.bytes.byteLength} bytes.`);
+assert(freshExport.bytes.byteLength<4096,`Fresh Free .chelo should stay tiny, got ${freshExport.bytes.byteLength} bytes.`);
 assert(!JSON.stringify(freshDoc).includes('w1')&&!('n' in freshDoc.pets[0].data)&&!('la' in freshDoc.pets[0].data)&&!('r' in freshDoc.pets[0].data),'Shared V14/V37 weights and retired legacy replay payloads must not be serialized.');
 const freshRoundTrip=Save.decode(freshExport.bytes,'free');
 assert.equal(freshRoundTrip.pets[0].data.i[0],'Chelo');
@@ -50,7 +50,7 @@ assert.equal(freeRestored.data.petName,free.data.petName);
 assert(freeRestored.memoryCount()>0,'Free memories were lost during .chelo round trip.');
 
 // Bond/Arena adapters must be the same tensors consumed by the C++ accumulator.
-const fen='rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1';
+const fen='rnbqkbnr/p1ppp1pp/5p2/1p6/2P2P2/8/PP1PP1PP/RNBQKBNR b KQkq - 0 3';
 const learner=makeBrain('free','bond-training');
 learner.observePetMove(fen,'e7e5',{side:'b'},1);
 const beforeBond=Array.from(learner.data.dualLora.bond.aW);
