@@ -1,0 +1,19 @@
+{
+  "name": "Chelo \u00b7 Your Little Chess Companion",
+  "short_name": "Chelo",
+  "description": "Raise a chess companion. Watch it learn through play, offline.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#10131b",
+  "theme_color": "#10131b",
+  "icons": [
+    {
+      "src": "./assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

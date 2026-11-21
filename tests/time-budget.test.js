@@ -1,0 +1,13 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
+const base=path.resolve(__dirname,'..'),root={};
+const context={window:root,self:root,globalThis:root,TextEncoder,TextDecoder,Uint8Array,Uint16Array,Uint32Array,Float32Array,Int8Array,Int16Array,Int32Array,DataView,ArrayBuffer,SharedArrayBuffer,Atomics,Map,Set,Math,Date,JSON,Number,String,Object,Error,RegExp,Promise,console,performance,atob,btoa};vm.createContext(context);
+for(const file of ['src/engine/polyglot-random.js','src/engine/chess.js','src/engine/endgame-kpk.js','src/engine/fast-search.js','src/nnue/dual-nnue.js','src/soul/brain.js'])vm.runInContext(fs.readFileSync(path.join(base,file),'utf8'),context,{filename:file});
+const checkpoint=JSON.parse(fs.readFileSync(path.join(base,'models/base-v14-float32.json'),'utf8'));
+const bytes=fs.readFileSync(path.join(base,'models/dual-nnue-v37.bin'));
+root.CheloDualNNUE.model=root.CheloDualNNUE.parse(bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength));
+const brain=new root.CheloBrain('chelo-time-budget',{persist:false,v14Mode:true,baseModel:checkpoint.tensors,baseVersion:checkpoint.baseVersion});
+const game=new root.ChessCore();const result=brain.chooseMove(game,{maxTimeMs:20,maxNodes:10000000,bookBinary:null,usePolicy:false});
+assert(game.moves().includes(result.move),'time-limited search must return a legal move');
+assert(result.elapsed>=0&&result.elapsed<500,`20 ms budget overran unexpectedly: ${result.elapsed} ms`);
+console.log(JSON.stringify({format:'Chelo search time-budget guard',requestedMs:20,actualMs:result.elapsed,nodes:result.nodes,move:result.move,legal:true},null,2));

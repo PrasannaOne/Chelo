@@ -1,0 +1,971 @@
+{
+  "format": "Chelo V14 engine hardening benchmark",
+  "createdAt": "2026-11-19T10:22:57.255Z",
+  "frozenBase": {
+    "file": "models/base-v14-float32.json",
+    "sha256Before": "309fe09cf69f41efb5f0faaba47b63543c420c2b1098684dbd8f6e9e90be6d28",
+    "sha256After": "309fe09cf69f41efb5f0faaba47b63543c420c2b1098684dbd8f6e9e90be6d28",
+    "unchanged": true
+  },
+  "engine": {
+    "searchTimeMs": 150,
+    "nodeLimit": 120000,
+    "maxDepth": 10,
+    "bookDisabledForBenchmark": true,
+    "ttEntries": 262144,
+    "polyglotStartKey": "463b96181691fc9c",
+    "incrementalAccumulator": "Float32Array, parent snapshot retained for unmake; piece rows update only on from/to/capture/EP/castling squares; 16 state flags refresh per move"
+  },
+  "nps": {
+    "positions": 8,
+    "budgetMs": 150,
+    "fullRecompute": {
+      "medianNps": 11424,
+      "p25Nps": 9227,
+      "p75Nps": 11987,
+      "medianDepth": 2,
+      "runs": [
+        {
+          "nps": 13747,
+          "depth": 3,
+          "nodes": 2062
+        },
+        {
+          "nps": 9847,
+          "depth": 1,
+          "nodes": 1477
+        },
+        {
+          "nps": 16253,
+          "depth": 5,
+          "nodes": 2438
+        },
+        {
+          "nps": 11987,
+          "depth": 2,
+          "nodes": 1798
+        },
+        {
+          "nps": 11360,
+          "depth": 2,
+          "nodes": 1704
+        },
+        {
+          "nps": 6640,
+          "depth": 1,
+          "nodes": 996
+        },
+        {
+          "nps": 11487,
+          "depth": 2,
+          "nodes": 1723
+        },
+        {
+          "nps": 9227,
+          "depth": 1,
+          "nodes": 1384
+        }
+      ]
+    },
+    "incrementalAccumulator": {
+      "medianNps": 12530,
+      "p25Nps": 9313,
+      "p75Nps": 14847,
+      "medianDepth": 1.5,
+      "runs": [
+        {
+          "nps": 15560,
+          "depth": 3,
+          "nodes": 2334
+        },
+        {
+          "nps": 11900,
+          "depth": 1,
+          "nodes": 1785
+        },
+        {
+          "nps": 18367,
+          "depth": 5,
+          "nodes": 2755
+        },
+        {
+          "nps": 14847,
+          "depth": 2,
+          "nodes": 2227
+        },
+        {
+          "nps": 9313,
+          "depth": 1,
+          "nodes": 1397
+        },
+        {
+          "nps": 8687,
+          "depth": 1,
+          "nodes": 1303
+        },
+        {
+          "nps": 13160,
+          "depth": 2,
+          "nodes": 1974
+        },
+        {
+          "nps": 10247,
+          "depth": 1,
+          "nodes": 1537
+        }
+      ]
+    },
+    "medianNpsChangePercent": 9.686173239374973
+  },
+  "heldoutTactical": {
+    "source": "Lichess chess-puzzles CC0-1.0",
+    "rawPuzzles": 10000,
+    "split": "same deterministic FNV-1a puzzle ID 90/10 split as V14 pretraining; FNV-1a(id)%10===0 held out",
+    "heldoutTotal": 986,
+    "method": "Replay moves[0] (the opponent last move) on the source FEN; search the resulting puzzle position and compare the engine root move with moves[1] (the first solution move); 150 ms per position, no book. This is a strict first-move match, not a proof of every alternative mating line",
+    "mateIn2": {
+      "sample": 20,
+      "exactFirstMoveHits": 11,
+      "exactFirstMoveHitRate": 0.55,
+      "medianDepth": 2,
+      "medianNps": 11894
+    },
+    "mateIn3": {
+      "sample": 20,
+      "exactFirstMoveHits": 5,
+      "exactFirstMoveHitRate": 0.25,
+      "medianDepth": 1,
+      "medianNps": 9567
+    },
+    "details": {
+      "mateIn2": [
+        {
+          "id": "05F8f",
+          "rating": 596,
+          "opponentMove": "e8e7",
+          "puzzleFen": "6k1/p3r1pp/2R1P1p1/1p1p4/3b1P2/PP1P2P1/6KP/8 w - - 5 31",
+          "expected": "c6c8",
+          "engineMove": "c6c8",
+          "exactFirstMoveHit": true,
+          "depth": 5,
+          "nodes": 2498,
+          "nps": 16653,
+          "pliesInPuzzle": 4
+        },
+        {
+          "id": "03Xbj",
+          "rating": 1109,
+          "opponentMove": "c5c6",
+          "puzzleFen": "3r2k1/5pb1/2P1p1pp/3r4/1PQ1N1bP/4P1P1/2P5/2K2R2 b - - 0 28",
+          "expected": "d5d1",
+          "engineMove": "d5d1",
+          "exactFirstMoveHit": true,
+          "depth": 2,
+          "nodes": 1926,
+          "nps": 12840,
+          "pliesInPuzzle": 4
+        },
+        {
+          "id": "01mLC",
+          "rating": 1755,
+          "opponentMove": "h1e1",
+          "puzzleFen": "7k/p1q4p/5Pp1/1ppb4/3n1PQ1/2KP4/PP6/2R1R3 b - - 1 27",
+          "expected": "c7a5",
+          "engineMove": "c7a5",
+          "exactFirstMoveHit": true,
+          "depth": 2,
+          "nodes": 1795,
+          "nps": 11967,
+          "pliesInPuzzle": 4
+        },
+        {
+          "id": "02DgT",
+          "rating": 1246,
+          "opponentMove": "g1h1",
+          "puzzleFen": "3r3r/4kp2/4p1p1/4P3/2Q2P2/4q3/P5PP/2R2R1K b - - 2 27",
+          "expected": "h8h2",
+          "engineMove": "d8e8",
+          "exactFirstMoveHit": false,
+          "depth": 1,
+          "nodes": 1586,
+          "nps": 10573,
+          "pliesInPuzzle": 4
+        },
+        {
+          "id": "05Xzn",
+          "rating": 633,
+          "opponentMove": "f1d1",
+          "puzzleFen": "6k1/1pq2pp1/2p1r2p/p2pr3/P7/1BP2Q1P/1PPR1PP1/3R2K1 b - - 2 25",
+          "expected": "e5e1",
+          "engineMove": "e5e1",
+          "exactFirstMoveHit": true,
+          "depth": 2,
+          "nodes": 2012,
+          "nps": 13413,
+          "pliesInPuzzle": 4
+        },
+        {
+          "id": "0510c",
+          "rating": 1071,
+          "opponentMove": "d7d6",
+          "puzzleFen": "8/pp3pkp/3Q2p1/4p1P1/3nq3/8/P4PP1/5RK1 b - - 0 27",
+          "expected": "d4e2",
+          "engineMove": "d4f3",
+          "exactFirstMoveHit": false,
+          "depth": 2,
+          "nodes": 1785,
+          "nps": 11900,
+          "pliesInPuzzle": 4
+        },
+        {
+          "id": "066nI",
+          "rating": 1410,
+          "opponentMove": "f7e6",
+          "puzzleFen": "1R6/6b1/2qpkp2/2r1p2Q/4P3/6Pp/4KP1P/8 w - - 3 42",
+          "expected": "b8e8",
+          "engineMove": "h5f5",
+          "exactFirstMoveHit": false,
+          "depth": 2,
+          "nodes": 1783,
+          "nps": 11887,
+          "pliesInPuzzle": 4
+        },
+        {
+          "id": "0335v",
+          "rating": 1283,
+          "opponentMove": "h4e1",
+          "puzzleFen": "7k/6p1/6p1/3P4/8/1rBK1Q2/8/4q3 w - - 0 52",
+          "expected": "f3f8",
+          "engineMove": "f3f8",
+          "exactFirstMoveHit": true,
+          "depth": 5,
+          "nodes": 2299,
+          "nps": 15327,
+          "pliesInPuzzle": 4
+        },
+        {
+          "id": "03GkP",
+          "rating": 1269,
+          "opponentMove": "g5g2",
+          "puzzleFen": "r1b2r1k/1p4pp/p1np4/4p2R/2B1Pp2/2N5/PPP1QPq1/1K1R4 w - - 0 18",
+          "expected": "h5h7",
+          "engineMove": "f2f3",
+          "exactFirstMoveHit": false,
+          "depth": 1,
+          "nodes": 1407,
+          "nps": 9380,
+          "pliesInPuzzle": 4
+        },
+        {
+          "id": "015RS",
+          "rating": 942,
+          "opponentMove": "g2g4",
+          "puzzleFen": "5r1k/7P/pp6/q1p5/3pPrR1/1P1B3Q/2P1K3/7R b - - 0 46",
+          "expected": "f4f2",
+          "engineMove": "a5b5",
+          "exactFirstMoveHit": false,
+          "depth": 2,
+          "nodes": 1505,
+          "nps": 10033,
+          "pliesInPuzzle": 4
+        },
+        {
+          "id": "05VuI",
+          "rating": 1007,
+          "opponentMove": "c6b4",
+          "puzzleFen": "q4rk1/1p3ppp/4pn2/8/1N2p3/rPN1P2P/2PQB1P1/2KR3R b - - 2 19",
+          "expected": "a3a1",
+          "engineMove": "f8e8",
+          "exactFirstMoveHit": false,
+          "depth": 1,
+          "nodes": 1546,
+          "nps": 10307,
+          "pliesInPuzzle": 4
+        },
+        {
+          "id": "02N0o",
+          "rating": 872,
+          "opponentMove": "g8h8",
+          "puzzleFen": "r1r4k/p4p2/1qb1pPp1/8/8/5PB1/PPPQp3/4K3 w - - 0 31",
+          "expected": "d2h6",
+          "engineMove": "d2d6",
+          "exactFirstMoveHit": false,
+          "depth": 1,
+          "nodes": 1545,
+          "nps": 10300,
+          "pliesInPuzzle": 4
+        },
+        {
+          "id": "04e55",
+          "rating": 1108,
+          "opponentMove": "g1h1",
+          "puzzleFen": "2krr3/1pp2p1p/p1b3p1/6qn/2BbP3/2N2P2/PP1BQ1PP/2RR3K b - - 2 19",
+          "expected": "h5g3",
+          "engineMove": "d8d7",
+          "exactFirstMoveHit": false,
+          "depth": 0,
+          "nodes": 1296,
+          "nps": 8361,
+          "pliesInPuzzle": 4
+        },
+        {
+          "id": "066HE",
+          "rating": 964,
+          "opponentMove": "e5g5",
+          "puzzleFen": "r3k2r/1p3pp1/p3p1p1/6R1/2Pp2n1/1P1P1B1q/P4P2/RN1Q2K1 b kq - 3 21",
+          "expected": "h3h2",
+          "engineMove": "h3h2",
+          "exactFirstMoveHit": true,
+          "depth": 2,
+          "nodes": 1726,
+          "nps": 11507,
+          "pliesInPuzzle": 4
+        },
+        {
+          "id": "05gLw",
+          "rating": 1908,
+          "opponentMove": "f7f6",
+          "puzzleFen": "8/p1NR2bp/4pkp1/2p2p2/4n3/P3B1P1/7r/2K5 w - - 4 39",
+          "expected": "c7e8",
+          "engineMove": "c7e8",
+          "exactFirstMoveHit": true,
+          "depth": 2,
+          "nodes": 1898,
+          "nps": 12653,
+          "pliesInPuzzle": 4
+        },
+        {
+          "id": "0399J",
+          "rating": 1613,
+          "opponentMove": "e8e7",
+          "puzzleFen": "r1b2r1k/ppppq1pp/1b3p2/4p3/2B1P1QN/3P4/PPP2PPP/R4RK1 w - - 0 14",
+          "expected": "h4g6",
+          "engineMove": "h4g6",
+          "exactFirstMoveHit": true,
+          "depth": 3,
+          "nodes": 1924,
+          "nps": 12827,
+          "pliesInPuzzle": 4
+        },
+        {
+          "id": "03Xkm",
+          "rating": 1123,
+          "opponentMove": "a1b1",
+          "puzzleFen": "4rk2/4p3/4QPp1/2pP2N1/qp2P3/1p6/8/1K1R3R b - - 2 34",
+          "expected": "a4a2",
+          "engineMove": "a4a2",
+          "exactFirstMoveHit": true,
+          "depth": 4,
+          "nodes": 1881,
+          "nps": 12540,
+          "pliesInPuzzle": 4
+        },
+        {
+          "id": "03vsy",
+          "rating": 1981,
+          "opponentMove": "e8f7",
+          "puzzleFen": "6R1/3r1k2/4N3/4KPp1/1p6/3r4/5P2/8 w - - 4 41",
+          "expected": "g8f8",
+          "engineMove": "g8f8",
+          "exactFirstMoveHit": true,
+          "depth": 4,
+          "nodes": 2174,
+          "nps": 14493,
+          "pliesInPuzzle": 4
+        },
+        {
+          "id": "047ym",
+          "rating": 954,
+          "opponentMove": "e8b8",
+          "puzzleFen": "rr4k1/pR4pp/2n5/2q1p2Q/4pP1b/7P/P1P3PK/7R w - - 2 24",
+          "expected": "h5f7",
+          "engineMove": "h5f7",
+          "exactFirstMoveHit": true,
+          "depth": 1,
+          "nodes": 1404,
+          "nps": 9360,
+          "pliesInPuzzle": 4
+        },
+        {
+          "id": "03tOG",
+          "rating": 1395,
+          "opponentMove": "e6e7",
+          "puzzleFen": "3r2k1/1p2P2p/1b4pq/pP1P1r2/P7/3Q2P1/6PN/R3R2K b - - 0 32",
+          "expected": "h6h2",
+          "engineMove": "d8e8",
+          "exactFirstMoveHit": false,
+          "depth": 1,
+          "nodes": 1430,
+          "nps": 9533,
+          "pliesInPuzzle": 4
+        }
+      ],
+      "mateIn3": [
+        {
+          "id": "00rHa",
+          "rating": 1924,
+          "opponentMove": "f1b5",
+          "puzzleFen": "2kr3r/pp2nppp/4p3/1BPpP3/bn1N2Q1/q1N5/2PB1PPP/1K1R3R b - - 5 14",
+          "expected": "a4c2",
+          "engineMove": "d8e8",
+          "exactFirstMoveHit": false,
+          "depth": 0,
+          "nodes": 1249,
+          "nps": 8217,
+          "pliesInPuzzle": 6
+        },
+        {
+          "id": "03BKg",
+          "rating": 2398,
+          "opponentMove": "c6e7",
+          "puzzleFen": "1rbq1k1r/p1p1n1pp/3bPpn1/3N4/3P4/2P2Q2/PP3PPP/R1B1R1K1 w - - 3 19",
+          "expected": "f3f6",
+          "engineMove": "g2g4",
+          "exactFirstMoveHit": false,
+          "depth": 1,
+          "nodes": 1320,
+          "nps": 8800,
+          "pliesInPuzzle": 6
+        },
+        {
+          "id": "00F6y",
+          "rating": 938,
+          "opponentMove": "e6d7",
+          "puzzleFen": "2k3r1/pppb1prp/1q6/8/Q7/2P1R1P1/P4P1P/4R1K1 w - - 4 24",
+          "expected": "e3e8",
+          "engineMove": "e3e8",
+          "exactFirstMoveHit": true,
+          "depth": 2,
+          "nodes": 1801,
+          "nps": 12007,
+          "pliesInPuzzle": 6
+        },
+        {
+          "id": "03Byg",
+          "rating": 1136,
+          "opponentMove": "e5c3",
+          "puzzleFen": "r1b3k1/pp3ppp/8/2q5/2B5/2b4P/P2N1PP1/4QRK1 w - - 0 21",
+          "expected": "e1e8",
+          "engineMove": "e1e8",
+          "exactFirstMoveHit": true,
+          "depth": 2,
+          "nodes": 1772,
+          "nps": 11813,
+          "pliesInPuzzle": 6
+        },
+        {
+          "id": "05Gq4",
+          "rating": 1479,
+          "opponentMove": "f1f2",
+          "puzzleFen": "r4rk1/1p4p1/p2p4/3P1R1Q/8/1N2q3/PPP2RPP/7K b - - 0 21",
+          "expected": "e3e1",
+          "engineMove": "e3e1",
+          "exactFirstMoveHit": true,
+          "depth": 3,
+          "nodes": 1854,
+          "nps": 12360,
+          "pliesInPuzzle": 6
+        },
+        {
+          "id": "03XcA",
+          "rating": 1545,
+          "opponentMove": "e1f1",
+          "puzzleFen": "Q7/pp1k1p1p/8/8/1b2q3/1bN5/1P3PPP/RN3K1R b - - 2 20",
+          "expected": "b3c4",
+          "engineMove": "e4f4",
+          "exactFirstMoveHit": false,
+          "depth": 1,
+          "nodes": 1303,
+          "nps": 8687,
+          "pliesInPuzzle": 6
+        },
+        {
+          "id": "04B7R",
+          "rating": 2040,
+          "opponentMove": "b8d8",
+          "puzzleFen": "3r1rk1/2R1Rppp/1p6/pq6/2BQ4/P5Pb/1P3P1P/6K1 w - - 4 23",
+          "expected": "e7f7",
+          "engineMove": "e7e5",
+          "exactFirstMoveHit": false,
+          "depth": 1,
+          "nodes": 1447,
+          "nps": 9647,
+          "pliesInPuzzle": 6
+        },
+        {
+          "id": "04rt9",
+          "rating": 1392,
+          "opponentMove": "h8h1",
+          "puzzleFen": "3k4/pp4p1/2P5/1B1bp3/6P1/BPR2P2/P5K1/3r3r w - - 1 29",
+          "expected": "c6c7",
+          "engineMove": "g4g5",
+          "exactFirstMoveHit": false,
+          "depth": 1,
+          "nodes": 1510,
+          "nps": 10067,
+          "pliesInPuzzle": 6
+        },
+        {
+          "id": "016rF",
+          "rating": 1799,
+          "opponentMove": "f8f6",
+          "puzzleFen": "r5k1/pppb2p1/1bnp1q2/6N1/8/2NQ2B1/PP4PP/7K w - - 0 20",
+          "expected": "d3h7",
+          "engineMove": "g5e4",
+          "exactFirstMoveHit": false,
+          "depth": 1,
+          "nodes": 1391,
+          "nps": 9273,
+          "pliesInPuzzle": 6
+        },
+        {
+          "id": "03lLX",
+          "rating": 1009,
+          "opponentMove": "c3e2",
+          "puzzleFen": "r3k2r/pp3pp1/2ppq3/4p3/3bP3/P2P1QP1/1PP1N1PN/2R2R1K b kq - 1 22",
+          "expected": "h8h2",
+          "engineMove": "d4c5",
+          "exactFirstMoveHit": false,
+          "depth": 1,
+          "nodes": 1425,
+          "nps": 9500,
+          "pliesInPuzzle": 6
+        },
+        {
+          "id": "01rQs",
+          "rating": 884,
+          "opponentMove": "g7g8",
+          "puzzleFen": "r5k1/1q2Rp2/p5rp/1p1b2p1/5n2/8/PQ4PP/4R1K1 w - - 4 36",
+          "expected": "e7e8",
+          "engineMove": "g2g4",
+          "exactFirstMoveHit": false,
+          "depth": 1,
+          "nodes": 1445,
+          "nps": 9633,
+          "pliesInPuzzle": 6
+        },
+        {
+          "id": "03iF3",
+          "rating": 1210,
+          "opponentMove": "e5d7",
+          "puzzleFen": "2kr1r2/pp1NR1p1/7p/2pQ1q2/8/2N5/PP1B1PPP/4R1K1 b - - 0 19",
+          "expected": "f5f2",
+          "engineMove": "f5d5",
+          "exactFirstMoveHit": false,
+          "depth": 1,
+          "nodes": 1204,
+          "nps": 8027,
+          "pliesInPuzzle": 6
+        },
+        {
+          "id": "02zCV",
+          "rating": 1685,
+          "opponentMove": "d2e4",
+          "puzzleFen": "r4k1r/1pp2pp1/1b1p1P2/pP6/P2PNnq1/1Q3N1p/5P2/R1B1RB1K b - - 1 21",
+          "expected": "g4g2",
+          "engineMove": "c7c5",
+          "exactFirstMoveHit": false,
+          "depth": 0,
+          "nodes": 1227,
+          "nps": 8020,
+          "pliesInPuzzle": 6
+        },
+        {
+          "id": "010WS",
+          "rating": 2073,
+          "opponentMove": "c2f2",
+          "puzzleFen": "6k1/p2Q4/3p2p1/8/3qPn2/5P2/PP3RPP/6K1 b - - 3 37",
+          "expected": "f4e2",
+          "engineMove": "f4d3",
+          "exactFirstMoveHit": false,
+          "depth": 1,
+          "nodes": 1574,
+          "nps": 10493,
+          "pliesInPuzzle": 6
+        },
+        {
+          "id": "00ueM",
+          "rating": 1719,
+          "opponentMove": "a3a2",
+          "puzzleFen": "2kr4/2pR4/2P1K1P1/8/8/4n3/p7/8 w - - 0 50",
+          "expected": "d7d8",
+          "engineMove": "d7d8",
+          "exactFirstMoveHit": true,
+          "depth": 4,
+          "nodes": 2121,
+          "nps": 14140,
+          "pliesInPuzzle": 6
+        },
+        {
+          "id": "03CGT",
+          "rating": 1194,
+          "opponentMove": "f2b2",
+          "puzzleFen": "r5k1/5p2/7p/4Q3/3P1Ppq/4P2P/1R4PK/8 b - - 3 43",
+          "expected": "g4g3",
+          "engineMove": "g8f8",
+          "exactFirstMoveHit": false,
+          "depth": 1,
+          "nodes": 1688,
+          "nps": 11253,
+          "pliesInPuzzle": 6
+        },
+        {
+          "id": "02toD",
+          "rating": 1827,
+          "opponentMove": "g8h8",
+          "puzzleFen": "r1bq3k/1pp1b1p1/p1n1p3/5rN1/2PPQ3/P3P3/1P3PP1/R3KB2 w Q - 0 16",
+          "expected": "e4h4",
+          "engineMove": "g5e6",
+          "exactFirstMoveHit": false,
+          "depth": 1,
+          "nodes": 1413,
+          "nps": 9420,
+          "pliesInPuzzle": 6
+        },
+        {
+          "id": "01aP5",
+          "rating": 1453,
+          "opponentMove": "a5b4",
+          "puzzleFen": "6rk/3Q2bp/p2p4/5p2/Pq6/2p4P/2P5/K3R1R1 w - - 9 35",
+          "expected": "d7g7",
+          "engineMove": "d7g7",
+          "exactFirstMoveHit": true,
+          "depth": 3,
+          "nodes": 1910,
+          "nps": 12733,
+          "pliesInPuzzle": 6
+        },
+        {
+          "id": "055Iv",
+          "rating": 2171,
+          "opponentMove": "g2g3",
+          "puzzleFen": "6k1/2Q2pp1/P6p/6r1/3Nb2q/2R1P1P1/1r3P1P/5RK1 b - - 0 26",
+          "expected": "h4h2",
+          "engineMove": "b2d2",
+          "exactFirstMoveHit": false,
+          "depth": 1,
+          "nodes": 1117,
+          "nps": 7397,
+          "pliesInPuzzle": 6
+        },
+        {
+          "id": "02cgy",
+          "rating": 1563,
+          "opponentMove": "d1d2",
+          "puzzleFen": "B4k1r/p6p/3ppnp1/2p5/3bPP2/2NP1PR1/PPPQ1q1P/R1B2b1K b - - 6 17",
+          "expected": "f1g2",
+          "engineMove": "f8g7",
+          "exactFirstMoveHit": false,
+          "depth": 1,
+          "nodes": 1107,
+          "nps": 7380,
+          "pliesInPuzzle": 6
+        }
+      ]
+    },
+    "proofSearch": {
+      "budgetMs": 600,
+      "definition": "Solved only when engine returns a positive forced-mate score >= 29,000 AND its root move matches the puzzle first solution move.",
+      "mateIn2": {
+        "sample": 10,
+        "solved": 7,
+        "forcedMateDetected": 7,
+        "details": [
+          {
+            "id": "05F8f",
+            "opponentMove": "e8e7",
+            "puzzleFen": "6k1/p3r1pp/2R1P1p1/1p1p4/3b1P2/PP1P2P1/6KP/8 w - - 5 31",
+            "expected": "c6c8",
+            "engineMove": "c6c8",
+            "score": 29997,
+            "depth": 7,
+            "nodes": 8767,
+            "elapsed": 600,
+            "forcedMateDetected": true,
+            "exactExpectedMove": true,
+            "solved": true
+          },
+          {
+            "id": "03Xbj",
+            "opponentMove": "c5c6",
+            "puzzleFen": "3r2k1/5pb1/2P1p1pp/3r4/1PQ1N1bP/4P1P1/2P5/2K2R2 b - - 0 28",
+            "expected": "d5d1",
+            "engineMove": "d5d1",
+            "score": 29997,
+            "depth": 5,
+            "nodes": 7970,
+            "elapsed": 600,
+            "forcedMateDetected": true,
+            "exactExpectedMove": true,
+            "solved": true
+          },
+          {
+            "id": "01mLC",
+            "opponentMove": "h1e1",
+            "puzzleFen": "7k/p1q4p/5Pp1/1ppb4/3n1PQ1/2KP4/PP6/2R1R3 b - - 1 27",
+            "expected": "c7a5",
+            "engineMove": "c7a5",
+            "score": 29997,
+            "depth": 4,
+            "nodes": 6979,
+            "elapsed": 600,
+            "forcedMateDetected": true,
+            "exactExpectedMove": true,
+            "solved": true
+          },
+          {
+            "id": "02DgT",
+            "opponentMove": "g1h1",
+            "puzzleFen": "3r3r/4kp2/4p1p1/4P3/2Q2P2/4q3/P5PP/2R2R1K b - - 2 27",
+            "expected": "h8h2",
+            "engineMove": "d8d2",
+            "score": 8,
+            "depth": 2,
+            "nodes": 5843,
+            "elapsed": 600,
+            "forcedMateDetected": false,
+            "exactExpectedMove": false,
+            "solved": false
+          },
+          {
+            "id": "05Xzn",
+            "opponentMove": "f1d1",
+            "puzzleFen": "6k1/1pq2pp1/2p1r2p/p2pr3/P7/1BP2Q1P/1PPR1PP1/3R2K1 b - - 2 25",
+            "expected": "e5e1",
+            "engineMove": "e5e1",
+            "score": 29997,
+            "depth": 5,
+            "nodes": 7925,
+            "elapsed": 600,
+            "forcedMateDetected": true,
+            "exactExpectedMove": true,
+            "solved": true
+          },
+          {
+            "id": "0510c",
+            "opponentMove": "d7d6",
+            "puzzleFen": "8/pp3pkp/3Q2p1/4p1P1/3nq3/8/P4PP1/5RK1 b - - 0 27",
+            "expected": "d4e2",
+            "engineMove": "d4e2",
+            "score": 29997,
+            "depth": 5,
+            "nodes": 8171,
+            "elapsed": 600,
+            "forcedMateDetected": true,
+            "exactExpectedMove": true,
+            "solved": true
+          },
+          {
+            "id": "066nI",
+            "opponentMove": "f7e6",
+            "puzzleFen": "1R6/6b1/2qpkp2/2r1p2Q/4P3/6Pp/4KP1P/8 w - - 3 42",
+            "expected": "b8e8",
+            "engineMove": "b8e8",
+            "score": 29997,
+            "depth": 4,
+            "nodes": 6982,
+            "elapsed": 600,
+            "forcedMateDetected": true,
+            "exactExpectedMove": true,
+            "solved": true
+          },
+          {
+            "id": "0335v",
+            "opponentMove": "h4e1",
+            "puzzleFen": "7k/6p1/6p1/3P4/8/1rBK1Q2/8/4q3 w - - 0 52",
+            "expected": "f3f8",
+            "engineMove": "f3f8",
+            "score": 29997,
+            "depth": 7,
+            "nodes": 8302,
+            "elapsed": 600,
+            "forcedMateDetected": true,
+            "exactExpectedMove": true,
+            "solved": true
+          },
+          {
+            "id": "03GkP",
+            "opponentMove": "g5g2",
+            "puzzleFen": "r1b2r1k/1p4pp/p1np4/4p2R/2B1Pp2/2N5/PPP1QPq1/1K1R4 w - - 0 18",
+            "expected": "h5h7",
+            "engineMove": "f2f3",
+            "score": 15,
+            "depth": 1,
+            "nodes": 5318,
+            "elapsed": 600,
+            "forcedMateDetected": false,
+            "exactExpectedMove": false,
+            "solved": false
+          },
+          {
+            "id": "015RS",
+            "opponentMove": "g2g4",
+            "puzzleFen": "5r1k/7P/pp6/q1p5/3pPrR1/1P1B3Q/2P1K3/7R b - - 0 46",
+            "expected": "f4f2",
+            "engineMove": "a5b5",
+            "score": -7,
+            "depth": 2,
+            "nodes": 6262,
+            "elapsed": 600,
+            "forcedMateDetected": false,
+            "exactExpectedMove": false,
+            "solved": false
+          }
+        ]
+      },
+      "mateIn3": {
+        "sample": 10,
+        "solved": 4,
+        "forcedMateDetected": 4,
+        "details": [
+          {
+            "id": "00rHa",
+            "opponentMove": "f1b5",
+            "puzzleFen": "2kr3r/pp2nppp/4p3/1BPpP3/bn1N2Q1/q1N5/2PB1PPP/1K1R3R b - - 5 14",
+            "expected": "a4c2",
+            "engineMove": "b4c2",
+            "score": -15,
+            "depth": 1,
+            "nodes": 5139,
+            "elapsed": 600,
+            "forcedMateDetected": false,
+            "exactExpectedMove": false,
+            "solved": false
+          },
+          {
+            "id": "03BKg",
+            "opponentMove": "c6e7",
+            "puzzleFen": "1rbq1k1r/p1p1n1pp/3bPpn1/3N4/3P4/2P2Q2/PP3PPP/R1B1R1K1 w - - 3 19",
+            "expected": "f3f6",
+            "engineMove": "g2g4",
+            "score": -12,
+            "depth": 1,
+            "nodes": 5371,
+            "elapsed": 600,
+            "forcedMateDetected": false,
+            "exactExpectedMove": false,
+            "solved": false
+          },
+          {
+            "id": "00F6y",
+            "opponentMove": "e6d7",
+            "puzzleFen": "2k3r1/pppb1prp/1q6/8/Q7/2P1R1P1/P4P1P/4R1K1 w - - 4 24",
+            "expected": "e3e8",
+            "engineMove": "e3e8",
+            "score": 29995,
+            "depth": 4,
+            "nodes": 7792,
+            "elapsed": 600,
+            "forcedMateDetected": true,
+            "exactExpectedMove": true,
+            "solved": true
+          },
+          {
+            "id": "03Byg",
+            "opponentMove": "e5c3",
+            "puzzleFen": "r1b3k1/pp3ppp/8/2q5/2B5/2b4P/P2N1PP1/4QRK1 w - - 0 21",
+            "expected": "e1e8",
+            "engineMove": "e1e8",
+            "score": 29995,
+            "depth": 5,
+            "nodes": 7510,
+            "elapsed": 600,
+            "forcedMateDetected": true,
+            "exactExpectedMove": true,
+            "solved": true
+          },
+          {
+            "id": "05Gq4",
+            "opponentMove": "f1f2",
+            "puzzleFen": "r4rk1/1p4p1/p2p4/3P1R1Q/8/1N2q3/PPP2RPP/7K b - - 0 21",
+            "expected": "e3e1",
+            "engineMove": "e3e1",
+            "score": 29995,
+            "depth": 5,
+            "nodes": 7302,
+            "elapsed": 600,
+            "forcedMateDetected": true,
+            "exactExpectedMove": true,
+            "solved": true
+          },
+          {
+            "id": "03XcA",
+            "opponentMove": "e1f1",
+            "puzzleFen": "Q7/pp1k1p1p/8/8/1b2q3/1bN5/1P3PPP/RN3K1R b - - 2 20",
+            "expected": "b3c4",
+            "engineMove": "e4f4",
+            "score": -9,
+            "depth": 1,
+            "nodes": 5453,
+            "elapsed": 600,
+            "forcedMateDetected": false,
+            "exactExpectedMove": false,
+            "solved": false
+          },
+          {
+            "id": "04B7R",
+            "opponentMove": "b8d8",
+            "puzzleFen": "3r1rk1/2R1Rppp/1p6/pq6/2BQ4/P5Pb/1P3P1P/6K1 w - - 4 23",
+            "expected": "e7f7",
+            "engineMove": "e7e5",
+            "score": 10,
+            "depth": 2,
+            "nodes": 5408,
+            "elapsed": 600,
+            "forcedMateDetected": false,
+            "exactExpectedMove": false,
+            "solved": false
+          },
+          {
+            "id": "04rt9",
+            "opponentMove": "h8h1",
+            "puzzleFen": "3k4/pp4p1/2P5/1B1bp3/6P1/BPR2P2/P5K1/3r3r w - - 1 29",
+            "expected": "c6c7",
+            "engineMove": "a3c5",
+            "score": -6,
+            "depth": 2,
+            "nodes": 5800,
+            "elapsed": 600,
+            "forcedMateDetected": false,
+            "exactExpectedMove": false,
+            "solved": false
+          },
+          {
+            "id": "016rF",
+            "opponentMove": "f8f6",
+            "puzzleFen": "r5k1/pppb2p1/1bnp1q2/6N1/8/2NQ2B1/PP4PP/7K w - - 0 20",
+            "expected": "d3h7",
+            "engineMove": "g5e4",
+            "score": 11,
+            "depth": 2,
+            "nodes": 5994,
+            "elapsed": 600,
+            "forcedMateDetected": false,
+            "exactExpectedMove": false,
+            "solved": false
+          },
+          {
+            "id": "03lLX",
+            "opponentMove": "c3e2",
+            "puzzleFen": "r3k2r/pp3pp1/2ppq3/4p3/3bP3/P2P1QP1/1PP1N1PN/2R2R1K b kq - 1 22",
+            "expected": "h8h2",
+            "engineMove": "h8h2",
+            "score": 29995,
+            "depth": 4,
+            "nodes": 7333,
+            "elapsed": 600,
+            "forcedMateDetected": true,
+            "exactExpectedMove": true,
+            "solved": true
+          }
+        ]
+      }
+    }
+  },
+  "limitations": [
+    "The benchmark is a local Node.js engine test, not a browser/mobile thermal benchmark.",
+    "A strict first-solution-move hit rate can undercount equivalent mating moves not present in the puzzle line.",
+    "A 150 ms cap may not complete the full forced-mate horizon on every position.",
+    "The 20 KiB book is a deterministic legal rollout starter book, not an expert or tournament repertoire."
+  ]
+}

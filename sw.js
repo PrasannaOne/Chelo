@@ -1,7 +1,12 @@
-const CACHE_NAME = 'chessling-shell-v6';
+/* Chelo offline shell. Relative paths resolve under the deployed repository subpath. */
+const CACHE_NAME = 'chelo-shell-v25-stage15cpp-m8-search-hardening';
 const ASSETS = [
-  './', './index.html', './style.css', './chess.js', './brain.js',
-  './app.js', './ai-worker.js', './pieces.svg', './manifest.json', './icon.svg'
+  './', './index.html', './manifest.webmanifest', './assets/style.css', './assets/icon.svg', './assets/pieces.svg',
+  './src/app/app.js', './src/engine/polyglot-random.js', './src/engine/chess.js',
+  './src/engine/endgame-kpk.js', './src/engine/fast-search.js', './src/nnue/dual-nnue.js',
+  './src/soul/chelo-save.js', './src/soul/brain.js', './src/worker/ai-worker.js', './wasm/chelo.wasm',
+  './models/base-v14-float32.json', './models/polyglot-book.bin', './models/dual-nnue-v37.bin',
+  './models/kpk-wdl.bin', './models/kpk-wdl-manifest.json'
 ];
 
 self.addEventListener('install', event => {
@@ -12,7 +17,7 @@ self.addEventListener('install', event => {
 self.addEventListener('activate', event => {
   event.waitUntil((async () => {
     const keys = await caches.keys();
-    await Promise.all(keys.filter(key => key.startsWith('chessling-shell-') && key !== CACHE_NAME).map(key => caches.delete(key)));
+    await Promise.all(keys.filter(key => (key.startsWith('chessling-shell-') || key.startsWith('chelo-shell-')) && key !== CACHE_NAME).map(key => caches.delete(key)));
     await self.clients.claim();
   })());
 });
@@ -24,8 +29,7 @@ self.addEventListener('fetch', event => {
     event.respondWith((async () => {
       try {
         const fresh = await fetch(request);
-        const cache = await caches.open(CACHE_NAME);
-        cache.put('./index.html', fresh.clone());
+        if (fresh.ok) (await caches.open(CACHE_NAME)).put('./index.html', fresh.clone());
         return fresh;
       } catch {
         return (await caches.match('./index.html')) || Response.error();

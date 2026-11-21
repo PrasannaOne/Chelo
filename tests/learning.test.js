@@ -1,98 +1,82 @@
-const fs=require('fs');
-const vm=require('vm');
-const path=require('path');
-const context={window:{},TextEncoder,Date,Math,console};
+'use strict';
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+const vm=require('node:vm');
+const root={};
+const context={window:root,self:root,globalThis:root,TextEncoder,TextDecoder,Uint8Array,Uint16Array,Uint32Array,Float32Array,Int8Array,Int16Array,Int32Array,DataView,ArrayBuffer,SharedArrayBuffer,Atomics,Map,Set,Math,Date,JSON,Number,String,Object,Error,RegExp,Promise,console,performance,atob,btoa};
 vm.createContext(context);
-for(const file of ['chess.js','brain.js'])vm.runInContext(fs.readFileSync(path.join(__dirname,'..',file),'utf8'),context,{filename:file});
-const Brain=context.window.ChesslingBrain;
-const Chess=context.window.ChessCore;
-function assert(ok,message){if(!ok)throw new Error(message);}
+const base=path.resolve(__dirname,'..');
+for(const file of ['src/engine/polyglot-random.js','src/engine/chess.js','src/engine/endgame-kpk.js','src/engine/fast-search.js','src/nnue/dual-nnue.js','src/soul/chelo-save.js','src/soul/brain.js'])vm.runInContext(fs.readFileSync(path.join(base,file),'utf8'),context,{filename:file});
+const Chess=root.ChessCore,Brain=root.CheloBrain,Save=root.CheloSave;
+const checkpoint=JSON.parse(fs.readFileSync(path.join(base,'models/base-v14-float32.json'),'utf8'));
+const raw=fs.readFileSync(path.join(base,'models/dual-nnue-v37.bin'));
+const model=root.CheloDualNNUE.parse(raw.buffer.slice(raw.byteOffset,raw.byteOffset+raw.byteLength));root.CheloDualNNUE.model=model;
+const make=(plan='free')=>new Brain('learning',{persist:false,v14Mode:true,baseModel:checkpoint.tensors,baseVersion:checkpoint.baseVersion,plan});
 
-const pet=new Brain('ml_test',{persist:false});
-const zeros=Array(context.window.CHESSLING_MODEL_INPUTS).fill(0);
-assert(pet.predict(zeros)===0,'Fresh model output must be neutral.');
-assert(pet.data.model.w1.length===24*12&&pet.data.model.w2.length===12,'Unexpected neural model dimensions.');
-assert(Object.keys(pet.data.weights).length===0,'Fresh pet must not retain the old fixed material-value table.');
-assert(pet.data.model.w2.every(value=>value===0),'Output layer must begin neutral.');
+const brain=make(),sharedModelBefore=brain.data.model.w1.slice();
+assert.equal(brain.limit,97*1024,'Free pet data must reserve space inside the full 100 KiB player file.');
+assert.equal(typeof brain.exportSoul,'undefined','The old .soul exporter must be removed.');
+assert.equal(brain.data.elo,300,'New Chelo pets begin with a gentle 300 internal challenge estimate.');
+const starter=brain.adaptiveSearchProfile();
+const profileSweep=[];for(const rating of [100,300,600,900,1200,1500,1800,2100,2400]){brain.data.elo=rating;profileSweep.push(brain.adaptiveSearchProfile());}
+for(let i=1;i<profileSweep.length;i++){assert(profileSweep[i].maxNodes>=profileSweep[i-1].maxNodes,'Adaptive node budget must be monotonic across its full rating range.');assert(profileSweep[i].maxTimeMs>=profileSweep[i-1].maxTimeMs,'Adaptive time budget must be monotonic across its full rating range.');assert(profileSweep[i].maxDepth>=profileSweep[i-1].maxDepth,'Adaptive depth must be monotonic across its full rating range.');}
+brain.data.elo=300;
+for(let i=0;i<8;i++)brain.updateAdaptiveChallenge('loss');
+const advanced=brain.adaptiveSearchProfile();
+assert(advanced.maxNodes>starter.maxNodes&&advanced.maxTimeMs>starter.maxTimeMs,'Challenge must scale up after repeated player wins.');
+const advancedRating=brain.data.elo;brain.updateAdaptiveChallenge('win');
+assert(brain.data.elo<advancedRating,'Challenge should ease back after Chelo wins.');
 
-// Synthetic supervised check: the network must learn a repeatable feature/outcome relationship.
-const materialAdvantage=Array(24).fill(0);materialAdvantage[0]=75;
-for(let i=0;i<800;i++)pet.trainSample(materialAdvantage,0.8);
-const learned=pet.predict(pet.dequantise(materialAdvantage));
-assert(learned>0.65,`Neural network did not learn a simple value signal (got ${learned.toFixed(3)}).`);
-assert(pet.data.model.steps===800,'Training-step counter is incorrect.');
+assert.equal(model.byteLength,49368,'The shared V37 model must remain frozen.');
 
-// The same feature should reverse sign when the point of view reverses.
-const queenUp=new Chess('4k3/8/8/8/8/8/8/4K2Q w - - 0 1');
-const whiteFeatures=pet.extractFeatures(queenUp,'w');
-const blackFeatures=pet.extractFeatures(queenUp,'b');
-assert(whiteFeatures[4]===1&&blackFeatures[4]===-1,'Material feature must be side-relative.');
-assert(whiteFeatures.length===24,'Feature encoder shape changed.');
+// Confirmed trainer games update Bond only, using the same Int8 adapter tensors the C++ engine reads.
+const position='rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1';
+brain.observePetMove(position,'e7e5',{side:'b'},1);
+const bondBefore=Array.from(brain.data.dualLora.bond.aW);
+brain.reinforce('win');
+assert(brain.data.dualLora.bond.steps>0,'A confirmed trainer match must train Bond.');
+assert.notDeepEqual(Array.from(brain.data.dualLora.bond.aW),bondBefore,'Bond Int8 coefficients should adapt after outcome feedback.');
+assert(brain.latestMemory(),'A completed trainer game must create a readable episodic memory.');
+assert.equal(brain.data.memories.length,1,'One completed trainer game should create one bounded life memory.');
+assert.equal(brain.data.dualLora.arena.steps,0,'Trainer-specific feedback must not update Arena.');
+assert.deepEqual(Array.from(brain.data.model.w1),Array.from(sharedModelBefore),'Pet-specific training must never mutate the shared V14 fallback checkpoint.');
 
-// TD update must be applied after the opponent's reply, and stored in the pet's own model.
-const tdPet=new Brain('td_test',{persist:false});
-const before=new Chess();
-const startFen=before.fen();
-const e4=before.move('e2e4');
-tdPet.observePetMove(startFen,e4.uci,{piece:'p',side:'w'},1,before);
-const e5=before.move('e7e5');
-tdPet.resolveLastPetMove(before);
-assert(tdPet.data.pending[0].r===1,'A response did not resolve the pending decision.');
-assert(tdPet.data.model.steps===1,'Temporal-difference update was not applied.');
+// Arena experience is an explicitly separate update path.
+const arenaBefore=Array.from(brain.data.dualLora.arena.aW);
+brain.observePetMove(position,'e7e5',{side:'b'},1);
+const unverifiedArena=brain.reinforce('win',null,{layer:'arena'});
+assert.equal(unverifiedArena.reason,'arena-attestation-required','Unattested exhibitions must never update Arena.');
+assert.equal(brain.data.dualLora.arena.steps,0,'Unattested exhibition feedback must leave Arena untouched.');
+assert.deepEqual(Array.from(brain.data.dualLora.arena.aW),arenaBefore,'Unattested exhibition feedback must not mutate Arena coefficients.');
+const arenaTraining=brain.trainDualAdapter(position,0.5,'b','arena',1,false);
+assert(arenaTraining.trained,'The dedicated Arena adapter remains trainable for a future verified ingestion path.');
+assert(brain.data.dualLora.arena.steps>0,'Arena adapter training must remain isolated and available to verified ingestion.');
+assert.notDeepEqual(Array.from(brain.data.dualLora.arena.aW),arenaBefore,'Arena adapter weights should adapt independently when explicitly trained.');
 
-// Replay should deduplicate identical experience and remain bounded.
-const replayPet=new Brain('replay_test',{persist:false});
-for(let i=0;i<200;i++)replayPet.addReplay(materialAdvantage,0.7,0.5+i/1000);
-assert(replayPet.data.replay.length===1,'Identical experiences should be consolidated.');
-assert(replayPet.data.replay[0].n===200,'Consolidated experience visit count is wrong.');
-assert(replayPet.data.replay[0].y===70,'Consolidated replay target was averaged with inconsistent units.');
-const mixedReplay=new Brain('mixed_replay_test',{persist:false});
-mixedReplay.addReplay(zeros,0.8,0.2);mixedReplay.addReplay(zeros,-0.2,0.9);
-assert(mixedReplay.data.replay[0].y===30,'Mixed replay outcomes should average to +0.30.');
-assert(mixedReplay.data.replay[0].p===90,'Replay priority should use a consistent integer scale.');
-replayPet.replayLearn();
-assert(replayPet.data.model.episodes===1&&replayPet.data.model.steps>0,'Replay training did not run.');
+// The retired self-play path cannot produce training updates.
+const practiceResult=brain.reinforce('practice');assert.equal(practiceResult.reason,'practice-disabled');
 
-// V3 compact Souls remain importable, with a fresh V4 network initialized on migration.
-const legacyV3={format:'Chessling Soul',version:3,encoding:'compact-json-v3',pet:{
-  v:3,i:['OldPet','old_pet','Trainer',1,100,1000,0,0,0,0,0],
-  w:[100,110,110,120,130,9000],a:[0,0,0,0],t:[50,50,50],m:[],h:[],o:[],q:[],g:[0,0,0,0,0],l:null,c:1,u:1
-}};
-const migrated=new Brain('migration_test',{persist:false});
-migrated.importSoul(legacyV3);
-assert(migrated.data.petName==='OldPet'&&migrated.data.model.w1.length===288,'V3 Soul migration did not initialise the V4 model.');
+// Compact v16 save stores only identity, traits, adapter blobs, memories and pending context.
+const compact=brain.compactData();
+assert.equal(compact.v,16);assert.equal(compact.i.length,8);assert.equal(compact.t.length,3);
+for(const legacy of ['n','la','r','model','weights','policy','replay','v14Adapter'])assert(!(legacy in compact),`Legacy/shared payload ${legacy} must not enter .chelo.`);
+const player={id:'local-player',handle:'trainer_1',displayName:'Trainer',settings:{},activeMatch:{version:4,mode:'human',movesPacked:Save.packMoves(['e2e4','e7e5'])}};
+const packed=Save.encode({plan:'free',player,pets:[{id:'pet-1',data:compact}]});
+assert(packed.bytes.byteLength<=100*1024,'Complete Free .chelo must fit 100 KiB.');
+const restored=make();restored.importCompactData(Save.decode(packed.bytes,'free').pets[0].data);
+for(const layer of ['bond','arena'])for(const tensor of ['aW','aB','b'])assert.deepEqual(Array.from(restored.data.dualLora[layer][tensor]),Array.from(brain.data.dualLora[layer][tensor]),`${layer}.${tensor} round trip`);
+assert.equal(restored.latestMemory(),brain.latestMemory(),'Episodic life memories must survive .chelo export/import.');
+assert.deepEqual(Array.from(Save.unpackMoves(Save.decode(packed.bytes,'free').player.activeMatch.movesPacked)),['e2e4','e7e5']);
+const personality=make();personality.data.traits={bold:90,curious:20,patient:80};assert.equal(personality.personality(),'Calculated attacker','Personality should reflect the combined evolved trait profile.');
+const storyteller=make();for(let i=0;i<15;i++){storyteller.observePetMove(position,'e7e5',{side:'b'},i+1);storyteller.reinforce(i%2?'win':'loss');}assert.equal(storyteller.data.memories.length,12,'Episodic life memory must retain only its bounded recent trail.');assert(storyteller.latestMemory(),'A pet with completed games should expose its newest story memory.');
 
+const pro=make('pro');assert.equal(pro.limit,500*1024,'Pro budget is 500 KiB per pet, not per account.');
+const five=Save.encode({plan:'pro',player,pets:Array.from({length:5},(_,i)=>({id:`pet-${i+1}`,data:pro.compactData()}))});
+assert(five.bytes.byteLength<=5*500*1024+8192,'Five-pet Pro account file must fit the 2.5 MiB allowance plus header.');
 
-// Expanded older Souls can be migrated too.
-const legacyV2={format:'Chessling Soul',version:2,pet:{
-  schema:2,petName:'OldTwo',handle:'old_two',trainerName:'Trainer',gen:1,elo:100,
-  weights:{p:100,n:110,b:110,r:120,q:130,k:9000},policy:{center:0,advance:0,development:0,shelter:0},
-  traits:{bold:50,curious:50,patient:50},memory:{},humanOpenings:{},openingReplies:{},pending:[],geneticTrace:{p:0,n:0,b:0,r:0,q:0}
-}};
-const migratedV2=new Brain('migration_v2',{persist:false});
-migratedV2.importSoul(legacyV2);
-assert(migratedV2.data.petName==='OldTwo'&&migratedV2.data.model.w1.length===288,'Expanded V2 Soul migration failed.');
-assert(migratedV2.data.weights.q===130,'Legacy V2 material data was not retained for compatibility.');
+const legacyV15Pet={v:15,i:['OldPet','old_pet','Old Trainer',1,100,1000,0,0,0,0,0],t:[50,50,50],m:[],o:[],r:[],u:[],g:[0,0,0,0,0],y:['Unbenchmarked',0,null],c:1,vv:1,dl:compact.dl};
+const migrated=make();migrated.importSoul({format:'Chessling Soul',version:15,encoding:'legacy-import-only',pet:legacyV15Pet});
+for(const layer of ['bond','arena'])for(const tensor of ['aW','aB','b'])assert.deepEqual(Array.from(migrated.data.dualLora[layer][tensor]),Array.from(brain.data.dualLora[layer][tensor]),`legacy V15 ${layer}.${tensor} migration`);
 
-// A short real legal self-play segment exercises feature extraction and move search together.
-const sparPet=new Brain('spar_segment',{persist:false});
-const spar=new Chess();
-for(let ply=0;ply<10&&!spar.game_over();ply++){
-  const fen=spar.fen(),side=spar.turn();
-  const decision=sparPet.chooseMove(spar,{timeMs:85,nodeLimit:4500});
-  const played=spar.move(decision.move);
-  assert(played,`Neural search returned an illegal move at self-play ply ${ply+1}.`);
-  sparPet.resolveLastPetMove(spar);
-  sparPet.observePetMove(fen,played.uci,{piece:played.piece,captured:played.captured,gaveCheck:/[+#]$/.test(played.san),side},spar.historyMoves().length,spar);
-}
-assert(sparPet.data.pending.length>0&&sparPet.data.model.steps>0,'Real self-play did not feed the learning loop.');
-
-// A trained Soul must restore the exact neural weights and stay inside 50 KiB.
-const soul=JSON.parse(pet.exportSoul());
-const restored=new Brain('ml_restore',{persist:false});
-restored.importSoul(soul);
-assert(Math.abs(restored.predict(restored.dequantise(materialAdvantage))-learned)<1e-5,'Soul did not preserve neural predictions.');
-assert(restored.size()<=51200,'Restored brain exceeds the strict storage budget.');
-
-console.log('Chessling V4 machine-learning tests passed.');
-console.log(`Synthetic value learning: ${learned.toFixed(3)} after 800 updates; TD updates: ${tdPet.data.model.steps}; Soul: ${restored.size()} bytes.`);
+console.log(JSON.stringify({test:'M6 companion learning and memory contract',modelBytes:model.byteLength,sharedModelImmutable:true,bondSteps:brain.data.dualLora.bond.steps,arenaSteps:brain.data.dualLora.arena.steps,practiceUpdates:0,freeFileBytes:packed.bytes.byteLength,proFivePetBytes:five.bytes.byteLength,legacyImporter:'migration-only',profileSweep:{steps:profileSweep.length,monotonic:true},result:'PASS'},null,2));

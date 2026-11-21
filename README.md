@@ -1,81 +1,129 @@
-# Chessling V4 · Raise a chess monster
+# Chelo V15-CPP · M8 Engine Hardening + M6 Companion
 
-Chessling is an offline-first chess pet. Each pet begins with a neutral, untrained value model, remembers its own games, and learns from human play and visible self-play. The long-term game is pet-versus-pet: people raise creatures; the creatures compete.
+Chelo is an offline-first, collectible chess-pet game. The shared C++ chess engine and V37 model provide common chess capability; each pet develops its own identity, personality, trainer-specific Bond learning, a separate Arena adapter reserved for verified battles, and compact memories. **A player's only portable save is one `.chelo` file containing the complete player record and full pet roster.** Individual `.soul` files are retired.
 
-## Run it
+## Upload and install workflow
 
-Serve this folder over HTTP so the Web Worker and Service Worker work reliably:
+The repository accepts one root-level upload archive named `Chelo.zip`. Its contents must be rooted directly at the project root (for example, `index.html`, `cpp/`, `src/`, `models/`, `tests/`, and `docs/`, not an enclosing version-named folder). Upload or replace `Chelo.zip` in the repository root and the **Install Chelo project archive** workflow will validate its paths and required files, build/check the native engine, run the core engine regression suite, prepare a static-site artifact, and then copy project files into the repository root. The archive is the complete application source of truth: installation removes stale application/project files that are absent from the archive, while preserving `.git/`, `.github/` workflow definitions, and the uploaded `Chelo.zip`. GitHub Actions workflow files are managed separately and are deliberately not overwritten by the archive installer because the default Actions token cannot update workflow files. GitHub Pages deployment remains managed by the repository Pages configuration.
 
-```bash
-python -m http.server 8000
+For manual local checks, see `M8-ANDROID-QUICKSTART.md` and run `bash run-m8-engine-tests.sh` on a compatible Clang/Node environment. Android users should use `bash build_termux.sh` in Termux and then `./bin/chelo-uci --verify`.
+
+## M8: native search correctness and efficiency hardening
+
+M8 keeps the M7 bitboard generator and frozen V37 model, while correcting search-behaviour regressions found by comparing the C++ port with Stage 3.9. It bounds in-check quiescence, removes duplicate check extensions, restores the Stage 3.9 null-move and LMR schedules, prevents path-sensitive TT score reuse, restores repetition handling through null branches, preserves the best root move without relying on a path-sensitive TT entry, fixes legal-en-passant position identity, and detects insufficient material in both main and quiescence search. The transposition table now retains 262,144 entries in four-way buckets. Native and WASM builds pass the same deterministic evaluation/search checks.
+
+M8 has **not** yet established an absolute Elo or proved a tournament-strength gain over Stage 3.9. Same-host diagnostics show higher completed search depth in most sampled positions, but move choices differ and Android-device measurements plus a longer paired match remain outstanding. See `docs/CPP-M8-ENGINE-RELEASE.md` and `M8-ANDROID-QUICKSTART.md`.
+
+## M7: bitboard engine and tactical-search upgrade
+
+M7 upgrades the native C++/WASM engine with ray-mask bitboard move generation, deeper quiescence, conservative SEE/delta pruning, and soft/hard time management. Native UCI now supports clock controls and the Termux runner can benchmark the actual Android device or run colour-swapped Elo gauntlets against another UCI engine. The frozen V37 model and `.chelo` save format are unchanged. See `docs/CPP-M7-ENGINE-RELEASE.md` for results and `M7-TERMUX-QUICKSTART.md` for phone-side build, benchmark and Elo instructions.
+
+## M6: C++/V37-first adaptive companion
+
+M6 promotes the C++/WASM engine from an optional diagnostic path to the default engine for local adaptive companion games. The Worker verifies and loads the pinned V37 model, loads the pet's Bond/Arena adapters, and runs a bounded C++ search. Both the personal node budget and time budget are enforced. If WebAssembly is unavailable, a visible JavaScript safety fallback remains available.
+
+Completed trainer games now leave compact persistent event memories, and personality descriptions reflect combinations of the pet's evolving traits. The most recent memory appears in the growing-brain panel and travels inside the existing V16 `.chelo` pet record extension.
+
+**Arena integrity remains deliberately strict:** the current server proves that submitted games are legal, not that the opponent pet produced the submitted moves. Such exhibitions do not train Arena. Trainer results update Bond only. Server-verifiable AI-move attestation is still needed before Arena battles can safely feed Arena learning.
+
+The internal adaptive challenge estimate is not a certified Elo. M6 validates the budget curve and integration, not human-skill calibration or an Elo gain. M7 adds reproducible native-device benchmarking and relative UCI Elo tools; M8 hardens the C++ search path; real Android measurements and a full external-engine gauntlet must still be collected on the target device.
+
+See `docs/CPP-M6-RELEASE-REPORT.md` for scope, evidence, and remaining boundaries. The M5 documentation below records the baseline this milestone extends.
+
+---
+
+## M5 baseline: adaptive companion and unified `.chelo` storage
+
+M4 introduced the unified portable save; M5 raises the Free capacity while retaining the same compact player-owned data model:
+
+| Budget | Free | Pro |
+|---|---:|---:|
+| One complete `.chelo` file | 100 KiB maximum | 5 × 500 KiB pet payloads + shared metadata, approximately 2.45 MiB / 2.57 MB decimal |
+| Pet slots | 1 | 5 |
+| Per-pet data ceiling | 97 KiB | 500 KiB |
+| Shared player metadata | 2 KiB maximum | 2 KiB maximum |
+
+The Free file limit applies to the whole exported file, including the player header, active-match snapshot, roster, JSON envelope and checksum. We reserve 97 KiB for its one pet and 2 KiB for shared player data; final validation checks the actual complete 100 KiB ceiling. Each Pro pet receives its own 500 KiB allowance inside the same file. The five pet payloads are not five separate downloads.
+
+The `.chelo` file uses a versioned, minified JSON container (`CHELO` v1) with a CRC32 corruption check. Pet records use compact numeric arrays, 64-bit position fingerprints, packed 16-bit UCI moves, and quantised Int8 Bond/Arena adapters. The CRC is an integrity check, not an authentication signature. Online account identity and Pro entitlement are checked by the server, not trusted from the file.
+
+The shared C++ engine, V37 weights, opening book, KPK data, app code and static assets stay hosted once. They are never embedded in the `.chelo` file. Legacy `.soul` files may be accepted by the migration-only importer, but Chelo no longer exports or creates them.
+
+### M5 synthetic storage measurements
+
+The current deterministic stress fixtures measure:
+
+| Fixture | Complete file | Retained distinct position fingerprints |
+|---|---:|---:|
+| Free | 98,800 bytes / 102,400 | 2,188 |
+| Pro, per pet | 511,215 bytes / 512,000 | 11,398 |
+| Pro, five pets | 2,556,439 bytes / 2,568,192 | 5 × 11,398 |
+
+These counts come from deterministic synthetic distinct-position fixtures. They are not a promise that every real pet will retain exactly that many memories or that every memory is a separately playable game. Real training, long-session growth and Android storage behaviour still need device validation. A fresh Free test file is about 716 bytes, before the player has built up much history.
+
+M4 connected trainer-game outcome feedback to the Bond adapter. M6 makes the C++ V37 adapter-aware evaluator the default for local adaptive companion play. Trainer games update Bond only. Online Arena exhibitions remain unranked and are not fed into Arena learning because the server currently verifies legal replay, not AI move authorship. The V37 model remains immutable.
+
+See:
+- `reference/CHELO-SAVE-FORMAT.md` for the complete save contract.
+- `docs/CPP-M6-RELEASE-REPORT.md` for current M6 behaviour and validation.
+- `docs/CPP-M5-RELEASE-REPORT.md` for historical M5 storage measurements.
+- `docs/CHELO-MIGRATION.md` for legacy import behaviour.
+
+## Shared model and engine assets
+
+M6 leaves the shared V37 model weights frozen while extending the C++ search bridge with simultaneous time and node limits. The chess evaluation weights are not retrained or changed.
+
+- `models/dual-nnue-v37.bin`: **49,368 bytes**, SHA-256 `f9ffe3f0dc641c93be26f871086182a82291411a4e4b59c073fcc7c8bfc4022e`.
+- `cpp/chelo_engine.hpp` / `cpp/chelo_engine.cpp`: fixed-storage C++20 chess core, incremental position/hash/NNUE state and search.
+- `cpp/uci_main.cpp`: native UCI engine.
+- `cpp/wasm_exports.cpp` / `wasm/chelo.wasm`: browser Worker bridge.
+- `build_termux.sh`: native Clang++ Android/Termux build. `build_wasm.sh`: separate freestanding WASM build.
+
+In M5, the optional C++ Worker bridge was still opt-in and adaptive matches used JavaScript FastSearch. M6 supersedes that behaviour: local adaptive matches now use C++/V37 by default, subject to an explicit JavaScript safety fallback. The 300–2,400 challenge number remains an internal estimate, not a calibrated Elo rating.
+
+## Cloudflare storage design
+
+The Arena Worker exposes authenticated `GET/PUT /api/player/save` endpoints. A SQLite-backed Durable Object stores the player header and each pet as separate records, then assembles the single `.chelo` file at the API boundary. This avoids putting the full five-pet file into one DO key/value item or SQL row. Writes use ETags so a stale device cannot silently overwrite a newer save. The Worker derives the account plan from D1 and passes authenticated account identity to the save object; a client-edited `plan` field cannot grant Pro storage.
+
+The backend code and local Durable Object tests are included, but **the Worker has not been deployed and the app does not yet have its account/login/cloud-sync interface wired in**. Deployment still requires a real D1 database ID, a Pages origin, Wrangler authentication, and the `PlayerSaveDO` migration. Offline game and local `.chelo` import/export remain usable without Arena services.
+
+Cloudflare's current Free plan supports SQLite-backed Durable Objects, with 100,000 DO requests/day, 13,000 GB-seconds/day, and 5 GB account storage; key+value and SQL row/BLOB limits are 2 MB. The 500 KiB per-pet records fit individually, while the whole Pro file is split across records. Worker request body limits are much larger than the `.chelo` cap. These are platform ceilings, not a guarantee of unlimited free sync: request/compute/storage quotas still apply. See the official [Durable Objects pricing](https://developers.cloudflare.com/durable-objects/platform/pricing/), [Durable Objects limits](https://developers.cloudflare.com/durable-objects/platform/limits/), and [Workers limits](https://developers.cloudflare.com/workers/platform/limits/).
+
+## Repository layout
+
+```text
+index.html / assets/         Offline-first board UI and styles
+src/app/                     Player app and unified .chelo workflow
+src/soul/brain.js             Individual pet memory and Bond/Arena learning
+src/soul/chelo-save.js        CHELO v1 container, limits and IndexedDB storage
+src/nnue/                     Shared V37 parser
+src/worker/                   Browser search Worker and C++-first adaptive bridge
+cpp/ / wasm/                  Shared native/WASM chess engine
+models/                       Shared model and static chess resources
+workers/arena/                Cloudflare Worker, PlayerSaveDO and D1 schema
+reference/                    Canonical product and engineering plans
+docs/                         Release, migration and validation reports
+tests/                         Save-format, learning, engine and Worker tests
 ```
 
-Open `http://localhost:8000`.
+## Build and verify
 
-## What's new in V4
-
-- **A real trainable neural model:** each pet has its own 24-input, 12-hidden-unit neural value model. It is used by the actual chess search, not just displayed in the UI.
-- **Neutral start:** new model outputs begin at zero. It does not load conventional piece values or fixed positional preferences into the evaluator.
-- **Learning during a game:** a pet records the position before its move and waits for the opponent's reply before applying temporal-difference feedback.
-- **Experience replay:** completed games supply outcome labels. Compact replay examples are revisited to reinforce patterns and reduce the chance that old lessons vanish after one new game.
-- **Original learning ideas preserved:** opening habit mirroring and FEN/action memory remain alongside the neural model. The network learns material preferences rather than receiving a hard-coded piece-value progression.
-- **Same search budget for every pet:** Growth Elo never unlocks deeper search. The shared search uses the pet's current model to evaluate positions.
-- **Visible Practice Mode:** the pet plays both colours on the actual board, move by move. It can be paused/resumed/stopped and automatically pauses when the page is hidden. It never runs a hidden match in the background.
-- **No self-play rating farming:** practice sessions can train the model but do not change Growth Elo, Arena Elo, wins, losses or draws.
-- **Premium convenience, not premium intelligence:** the UI reserves a locked “Skip to end · Pro” option. Fast-forward is not active until real Pro entitlements are implemented. Watching practice stays free.
-- **Compact brain storage:** the full model, replay, pending training data, memories and pet state are measured against a hard cap of 51,200 UTF-8 bytes (50 KiB).
-- **Soul portability:** new exports use compact V4 encoding. V3 compact Souls and older expanded brain objects can be imported.
-- **Arena remains safely unranked:** challenges are not awarded Arena Elo until target-side AI move attestation is implemented.
-
-## What's included
-
-- `index.html`, `style.css`, `app.js` — mobile-friendly local experience and visible self-play.
-- `chess.js` — dependency-free legal chess rules engine.
-- `brain.js` — individual neural value model, online TD learning, experience replay, habit mirroring, position/action memory, compact Soul handling and the 50 KiB hard cap.
-- `ai-worker.js` — off-main-thread search.
-- `pieces.svg` — vector chess pieces.
-- `sw.js`, `manifest.json`, `icon.svg` — PWA and offline shell.
-- `arena/` — optional Cloudflare Arena foundation; challenges remain unranked until AI attestation is solved.
-- `tests/` — chess, neural learning, storage, UI, PWA and Arena checks.
-- `benchmarks/` — frozen-Soul A/B runner for comparing fresh and trained brains with equal search budgets.
-- `CHESSLING_MASTER_SPEC.md` — product decisions and architecture.
-- `AI_MODEL_ARCHITECTURE.md` — current model design.
-- `AI_MODEL_VALIDATION.md` — test evidence and required chess-strength benchmarks.
-- `CLAUDE_HANDOFF.md` — detailed brief for an independent model review/improvement pass.
-- `CLAUDE_NEXT_STEPS.md` — remaining engineering and research backlog.
-- `CHANGELOG_V4.md` — changes made in this foundation pass.
-- `benchmarks/README.md` — how to compare fresh and trained frozen Souls.
-- `reference/` — original Gemini/Pawnling ZIP and blueprint, plus the prior V3 snapshot, preserved for comparison.
-
-## Core rules and data model
-
-- Human-vs-pet games are played by the player as White and Chessling as Black.
-- Practice Mode is the same pet on both sides. It is rehearsal only, never a ranked result.
-- The pet starts at a local Growth Rating marker of 100. This is not a calibrated playing-strength or Arena rating.
-- Arena Elo is separate and is not currently active.
-- The compact pet brain is at most 50 KiB (51,200 bytes). Current-game history is stored separately from the brain.
-- Soul export/import preserves identity, model, replay, memories, traits, stats and optional active game.
-- Undo in a human match restores the brain snapshot from before that turn.
-
-## Honest limitations
-
-V4 now includes a real small neural network with back-propagation, online temporal-difference updates and experience replay. That is materially different from the V3 adaptive heuristic. It is still a compact experimental value model, not AlphaZero, Maia or a proven high-strength engine. The feature encoder is handcrafted, the search uses alpha-beta, and measured playing-strength improvement is not established. See `AI_MODEL_VALIDATION.md` before making a public strength claim.
-
-The Arena Worker is not connected to the local interface. It does not yet provide token recovery, moderation, complete abuse controls, payments or Pro entitlement checks. Its current challenge route checks that a submitted match is legal but cannot prove the target pet itself generated its moves. It therefore stores challenges as unranked and does not change Arena Elo. The intended anti-farming rule is at most three ranked matches per challenger trainer against a given pet per UTC day; self-play never earns rating at all.
-
-## Tests
-
-With Node.js installed, run:
-
-```bash
-node tests/smoke.test.js
-node tests/learning.test.js
-node tests/worker.test.js
-node arena/worker.test.mjs
+```sh
+bash build_termux.sh
+./bin/chelo-uci --verify
+bash build_wasm.sh
+bash run-m8-engine-tests.sh
+bash run-tests.sh
+bash run-learning-tests.sh
+bash run-nnue-tests.sh
+bash run-search-tests.sh
+bash run-tactical-tests.sh
+bash run-worker-tests.sh
+bash run-m6-tests.sh  # Full build + validation bundle (long-running)
 ```
 
-Or run all checks together with `./run-tests.sh`.
+On an Android device, `bash benchmarks/termux-benchmark.sh` measures native search throughput. After hosting the repository, open `benchmarks/wasm-device-benchmark.html` on Android Chrome/WebView to measure WASM. Compare against another UCI engine with `./run-termux-elo.sh /path/to/opponent-uci 60 500`; the result is relative Elo difference, not an absolute rating. `build-static.sh` creates `_site/` for Cloudflare Pages or GitHub Pages. The app has no frontend bundler and no runtime CDN dependency.
 
-## Original project input
+## Adaptive companion
 
-The complete Gemini-generated Pawnling starter and its blueprint remain under `reference/`. The original ZIP was not overwritten.
+New pets begin at an approachable internal challenge estimate of 300. Completed games gradually adjust Chelo and its thinking budget to the trainer. This estimate is not a certified Elo rating; the strength curve remains subject to real-player calibration.

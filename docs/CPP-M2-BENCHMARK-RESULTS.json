@@ -1,0 +1,204 @@
+{
+  "position": "position startpos moves e2e4 e7e5 g1f3 b8c6 f1c4 f8c5 c2c3 g8f6 d2d3",
+  "comparison": {
+    "500": {
+      "m1": {
+        "binary": "../Chelo-V15-CPP-M1/bin/chelo-uci",
+        "runs": [
+          {
+            "elapsed_ms": 500.8,
+            "depth": 3,
+            "main_nodes_reported": 383488,
+            "qnodes_reported": 0,
+            "total_nodes": 383488,
+            "nps": 765704,
+            "score_cp": 15,
+            "bestmove": "h8g8"
+          },
+          {
+            "elapsed_ms": 500.1,
+            "depth": 3,
+            "main_nodes_reported": 379904,
+            "qnodes_reported": 0,
+            "total_nodes": 379904,
+            "nps": 759587,
+            "score_cp": 15,
+            "bestmove": "h8g8"
+          },
+          {
+            "elapsed_ms": 499.5,
+            "depth": 3,
+            "main_nodes_reported": 365056,
+            "qnodes_reported": 0,
+            "total_nodes": 365056,
+            "nps": 730835,
+            "score_cp": 15,
+            "bestmove": "h8g8"
+          },
+          {
+            "elapsed_ms": 500.3,
+            "depth": 3,
+            "main_nodes_reported": 375808,
+            "qnodes_reported": 0,
+            "total_nodes": 375808,
+            "nps": 751184,
+            "score_cp": 15,
+            "bestmove": "h8g8"
+          },
+          {
+            "elapsed_ms": 499.9,
+            "depth": 3,
+            "main_nodes_reported": 368128,
+            "qnodes_reported": 0,
+            "total_nodes": 368128,
+            "nps": 736406,
+            "score_cp": 15,
+            "bestmove": "h8g8"
+          }
+        ],
+        "median_nps": 751184,
+        "median_depth": 3,
+        "median_total_nodes": 375808
+      },
+      "m2": {
+        "binary": "bin/chelo-uci",
+        "runs": [
+          {
+            "elapsed_ms": 500.3,
+            "depth": 3,
+            "main_nodes_reported": 215368,
+            "qnodes_reported": 189112,
+            "total_nodes": 404480,
+            "nps": 808440,
+            "score_cp": 15,
+            "bestmove": "h8g8"
+          },
+          {
+            "elapsed_ms": 501.1,
+            "depth": 3,
+            "main_nodes_reported": 217180,
+            "qnodes_reported": 190372,
+            "total_nodes": 407552,
+            "nps": 813295,
+            "score_cp": 15,
+            "bestmove": "h8g8"
+          },
+          {
+            "elapsed_ms": 501.4,
+            "depth": 3,
+            "main_nodes_reported": 192227,
+            "qnodes_reported": 175901,
+            "total_nodes": 368128,
+            "nps": 734205,
+            "score_cp": 15,
+            "bestmove": "h8g8"
+          },
+          {
+            "elapsed_ms": 500.6,
+            "depth": 3,
+            "main_nodes_reported": 209477,
+            "qnodes_reported": 184763,
+            "total_nodes": 394240,
+            "nps": 787462,
+            "score_cp": 15,
+            "bestmove": "h8g8"
+          },
+          {
+            "elapsed_ms": 502.0,
+            "depth": 3,
+            "main_nodes_reported": 206575,
+            "qnodes_reported": 182545,
+            "total_nodes": 389120,
+            "nps": 775148,
+            "score_cp": 15,
+            "bestmove": "h8g8"
+          }
+        ],
+        "median_nps": 787462,
+        "median_depth": 3,
+        "median_total_nodes": 394240
+      },
+      "median_nps_change_percent": 4.83
+    },
+    "3000": {
+      "m1": {
+        "binary": "../Chelo-V15-CPP-M1/bin/chelo-uci",
+        "runs": [
+          {
+            "elapsed_ms": 3000.7,
+            "depth": 3,
+            "main_nodes_reported": 2158080,
+            "qnodes_reported": 0,
+            "total_nodes": 2158080,
+            "nps": 719203,
+            "score_cp": 15,
+            "bestmove": "h8g8"
+          },
+          {
+            "elapsed_ms": 3000.4,
+            "depth": 3,
+            "main_nodes_reported": 2145792,
+            "qnodes_reported": 0,
+            "total_nodes": 2145792,
+            "nps": 715161,
+            "score_cp": 15,
+            "bestmove": "h8g8"
+          },
+          {
+            "elapsed_ms": 2999.9,
+            "depth": 3,
+            "main_nodes_reported": 2189312,
+            "qnodes_reported": 0,
+            "total_nodes": 2189312,
+            "nps": 729803,
+            "score_cp": 15,
+            "bestmove": "h8g8"
+          }
+        ],
+        "median_nps": 719203,
+        "median_depth": 3,
+        "median_total_nodes": 2158080
+      },
+      "m2": {
+        "binary": "bin/chelo-uci",
+        "runs": [
+          {
+            "elapsed_ms": 3000.9,
+            "depth": 3,
+            "main_nodes_reported": 1386993,
+            "qnodes_reported": 777231,
+            "total_nodes": 2164224,
+            "nps": 721203,
+            "score_cp": 15,
+            "bestmove": "h8g8"
+          },
+          {
+            "elapsed_ms": 3001.6,
+            "depth": 3,
+            "main_nodes_reported": 1405367,
+            "qnodes_reported": 790601,
+            "total_nodes": 2195968,
+            "nps": 731600,
+            "score_cp": 15,
+            "bestmove": "h8g8"
+          },
+          {
+            "elapsed_ms": 3001.5,
+            "depth": 3,
+            "main_nodes_reported": 1406114,
+            "qnodes_reported": 790878,
+            "total_nodes": 2196992,
+            "nps": 731953,
+            "score_cp": 15,
+            "bestmove": "h8g8"
+          }
+        ],
+        "median_nps": 731600,
+        "median_depth": 3,
+        "median_total_nodes": 2195968
+      },
+      "median_nps_change_percent": 1.72
+    }
+  },
+  "method": "M1/M2 runs are interleaved to reduce order/thermal bias; M1 reports qsearch in nodes, M2 reports qnodes separately."
+}

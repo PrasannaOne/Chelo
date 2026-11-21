@@ -1,0 +1,54 @@
+{
+  "format": "Chelo Stage 3.7 Dual-Perspective NNUE C36N",
+  "version": 1,
+  "architecture": "(768 -> 32) x 2 -> side-to-move concatenation -> SCReLU -> 64 -> 1",
+  "features": 768,
+  "hiddenPerPerspective": 32,
+  "activation": "clamp(x,0,255)^2",
+  "blackPerspective": "vertical rank flip + color swap",
+  "accumulator": "Int16Array(32) per perspective, preallocated MAX_PLY=128",
+  "quantization": {
+    "transformer": "Int8",
+    "bias": "Int16",
+    "output": "Int8",
+    "outputBias": "Int32",
+    "outputDivisor": 1048576,
+    "byteOrder": "little-endian"
+  },
+  "binaryBytes": 49368,
+  "binarySha256": "f9ffe3f0dc641c93be26f871086182a82291411a4e4b59c073fcc7c8bfc4022e",
+  "header": {
+    "magic": "C36N",
+    "version": 1,
+    "features": 768,
+    "hidden": 32,
+    "flags": 1,
+    "outputDivisor": 1048576,
+    "reserved": 0,
+    "headerBytes": 20
+  },
+  "trainingProvenance": {
+    "status": "user-supplied claim; not independently verified from the binary",
+    "claimedDevice": "Kaggle T4 GPU",
+    "claimedPositions": 5000000,
+    "claimedTeacher": "Stockfish depth 18+",
+    "claimedDataset": "Lichess/chess-position-evaluations",
+    "claimedObjective": "blended evaluation + WDL loss",
+    "claimedQAT": true,
+    "verificationGap": "No training logs, dataset manifest/split hashes, teacher version, checkpoint, QAT calibration report, or reproducible export bundle was supplied."
+  },
+  "compatibility": {
+    "stage": "3.7",
+    "soulVersion": 15,
+    "bondLoraRank": 1,
+    "arenaLoraRank": 2,
+    "architectureTag": "stage3.6-dual-perspective-screlu-32",
+    "adapterCompatibility": "verified tensor and fixed-point bias-delta parity"
+  },
+  "predecessor": {
+    "stage": "3.6 bootstrap",
+    "binary": "benchmarks/references/stage36/models/dual-nnue-v36-bootstrap.bin",
+    "binarySha256": "7dd7c781baf171f7a16506074012d8ac669b7e4003c8b0d255a7561b3ba96b56"
+  },
+  "binary": "dual-nnue-v37.bin"
+}

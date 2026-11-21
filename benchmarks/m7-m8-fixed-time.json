@@ -1,0 +1,506 @@
+[
+  {
+    "budgetMs": 100,
+    "position": "Start",
+    "M7": {
+      "depth": 5,
+      "nodes": 49638,
+      "qnodes": 51738,
+      "score": 12,
+      "time": 69,
+      "nps": 1469217,
+      "move": "d2d4"
+    },
+    "M8": {
+      "depth": 7,
+      "nodes": 37547,
+      "qnodes": 39082,
+      "score": 11,
+      "time": 64,
+      "nps": 1197328,
+      "move": "d2d4"
+    },
+    "depthDelta": 2,
+    "npsDeltaPercent": -18.5
+  },
+  {
+    "budgetMs": 100,
+    "position": "Kiwipete",
+    "M7": {
+      "depth": 4,
+      "nodes": 4979,
+      "qnodes": 64653,
+      "score": -16,
+      "time": 69,
+      "nps": 1009159,
+      "move": "d5e6"
+    },
+    "M8": {
+      "depth": 3,
+      "nodes": 4287,
+      "qnodes": 58945,
+      "score": -53,
+      "time": 69,
+      "nps": 916405,
+      "move": "e2a6"
+    },
+    "depthDelta": -1,
+    "npsDeltaPercent": -9.2
+  },
+  {
+    "budgetMs": 100,
+    "position": "Endgame",
+    "M7": {
+      "depth": 7,
+      "nodes": 52413,
+      "qnodes": 43843,
+      "score": 138,
+      "time": 69,
+      "nps": 1395014,
+      "move": "b4f4"
+    },
+    "M8": {
+      "depth": 10,
+      "nodes": 53034,
+      "qnodes": 53462,
+      "score": 146,
+      "time": 69,
+      "nps": 1543420,
+      "move": "b4f4"
+    },
+    "depthDelta": 3,
+    "npsDeltaPercent": 10.6
+  },
+  {
+    "budgetMs": 100,
+    "position": "Promotion tactics",
+    "M7": {
+      "depth": 4,
+      "nodes": 7659,
+      "qnodes": 53962,
+      "score": 9,
+      "time": 54,
+      "nps": 1141129,
+      "move": "c4c5"
+    },
+    "M8": {
+      "depth": 7,
+      "nodes": 9758,
+      "qnodes": 62340,
+      "score": 1,
+      "time": 62,
+      "nps": 1162870,
+      "move": "c4c5"
+    },
+    "depthDelta": 3,
+    "npsDeltaPercent": 1.9
+  },
+  {
+    "budgetMs": 100,
+    "position": "Middlegame",
+    "M7": {
+      "depth": 6,
+      "nodes": 39578,
+      "qnodes": 55654,
+      "score": -77,
+      "time": 69,
+      "nps": 1380173,
+      "move": "c4e6"
+    },
+    "M8": {
+      "depth": 7,
+      "nodes": 43573,
+      "qnodes": 58059,
+      "score": -80,
+      "time": 69,
+      "nps": 1472927,
+      "move": "c4e6"
+    },
+    "depthDelta": 1,
+    "npsDeltaPercent": 6.7
+  },
+  {
+    "budgetMs": 100,
+    "position": "Italian middlegame",
+    "M7": {
+      "depth": 3,
+      "nodes": 32020,
+      "qnodes": 40940,
+      "score": 4,
+      "time": 69,
+      "nps": 1057391,
+      "move": "d7d5"
+    },
+    "M8": {
+      "depth": 6,
+      "nodes": 25497,
+      "qnodes": 55925,
+      "score": 13,
+      "time": 65,
+      "nps": 1252646,
+      "move": "h8g8"
+    },
+    "depthDelta": 3,
+    "npsDeltaPercent": 18.5
+  },
+  {
+    "budgetMs": 100,
+    "position": "In-check evasion",
+    "M7": {
+      "depth": 13,
+      "nodes": 108004,
+      "qnodes": 27567,
+      "score": 413,
+      "time": 59,
+      "nps": 2297813,
+      "move": "e1e2"
+    },
+    "M8": {
+      "depth": 19,
+      "nodes": 195990,
+      "qnodes": 25452,
+      "score": 0,
+      "time": 69,
+      "nps": 3209304,
+      "move": "e1e2"
+    },
+    "depthDelta": 6,
+    "npsDeltaPercent": 39.7
+  },
+  {
+    "budgetMs": 250,
+    "position": "Start",
+    "M7": {
+      "depth": 6,
+      "nodes": 148092,
+      "qnodes": 156292,
+      "score": 4,
+      "time": 219,
+      "nps": 1389881,
+      "move": "g1f3"
+    },
+    "M8": {
+      "depth": 8,
+      "nodes": 140711,
+      "qnodes": 159321,
+      "score": -2,
+      "time": 219,
+      "nps": 1370009,
+      "move": "d2d4"
+    },
+    "depthDelta": 2,
+    "npsDeltaPercent": -1.4
+  },
+  {
+    "budgetMs": 250,
+    "position": "Kiwipete",
+    "M7": {
+      "depth": 5,
+      "nodes": 21069,
+      "qnodes": 191667,
+      "score": -12,
+      "time": 219,
+      "nps": 971397,
+      "move": "d5e6"
+    },
+    "M8": {
+      "depth": 6,
+      "nodes": 24768,
+      "qnodes": 158301,
+      "score": -29,
+      "time": 193,
+      "nps": 948544,
+      "move": "d5e6"
+    },
+    "depthDelta": 1,
+    "npsDeltaPercent": -2.4
+  },
+  {
+    "budgetMs": 250,
+    "position": "Endgame",
+    "M7": {
+      "depth": 8,
+      "nodes": 170626,
+      "qnodes": 128894,
+      "score": 182,
+      "time": 219,
+      "nps": 1367671,
+      "move": "b4f4"
+    },
+    "M8": {
+      "depth": 12,
+      "nodes": 175962,
+      "qnodes": 156070,
+      "score": 240,
+      "time": 220,
+      "nps": 1509236,
+      "move": "b4f4"
+    },
+    "depthDelta": 4,
+    "npsDeltaPercent": 10.4
+  },
+  {
+    "budgetMs": 250,
+    "position": "Promotion tactics",
+    "M7": {
+      "depth": 4,
+      "nodes": 108104,
+      "qnodes": 149176,
+      "score": 9,
+      "time": 219,
+      "nps": 1174794,
+      "move": "c4c5"
+    },
+    "M8": {
+      "depth": 8,
+      "nodes": 36966,
+      "qnodes": 221594,
+      "score": -17,
+      "time": 219,
+      "nps": 1180639,
+      "move": "c4c5"
+    },
+    "depthDelta": 4,
+    "npsDeltaPercent": 0.5
+  },
+  {
+    "budgetMs": 250,
+    "position": "Middlegame",
+    "M7": {
+      "depth": 7,
+      "nodes": 129281,
+      "qnodes": 172031,
+      "score": -80,
+      "time": 219,
+      "nps": 1375853,
+      "move": "c4e6"
+    },
+    "M8": {
+      "depth": 8,
+      "nodes": 130552,
+      "qnodes": 183304,
+      "score": -80,
+      "time": 219,
+      "nps": 1433132,
+      "move": "c4e6"
+    },
+    "depthDelta": 1,
+    "npsDeltaPercent": 4.2
+  },
+  {
+    "budgetMs": 250,
+    "position": "Italian middlegame",
+    "M7": {
+      "depth": 3,
+      "nodes": 116513,
+      "qnodes": 141023,
+      "score": 4,
+      "time": 219,
+      "nps": 1175963,
+      "move": "d7d5"
+    },
+    "M8": {
+      "depth": 7,
+      "nodes": 77309,
+      "qnodes": 175619,
+      "score": 13,
+      "time": 219,
+      "nps": 1154922,
+      "move": "h8g8"
+    },
+    "depthDelta": 4,
+    "npsDeltaPercent": -1.8
+  },
+  {
+    "budgetMs": 250,
+    "position": "In-check evasion",
+    "M7": {
+      "depth": 15,
+      "nodes": 464410,
+      "qnodes": 106214,
+      "score": 440,
+      "time": 219,
+      "nps": 2605589,
+      "move": "e1e2"
+    },
+    "M8": {
+      "depth": 20,
+      "nodes": 608917,
+      "qnodes": 77419,
+      "score": 0,
+      "time": 219,
+      "nps": 3133954,
+      "move": "e1e2"
+    },
+    "depthDelta": 5,
+    "npsDeltaPercent": 20.3
+  },
+  {
+    "budgetMs": 500,
+    "position": "Start",
+    "M7": {
+      "depth": 6,
+      "nodes": 332566,
+      "qnodes": 351466,
+      "score": 4,
+      "time": 469,
+      "nps": 1458490,
+      "move": "g1f3"
+    },
+    "M8": {
+      "depth": 9,
+      "nodes": 297931,
+      "qnodes": 364341,
+      "score": 8,
+      "time": 469,
+      "nps": 1412093,
+      "move": "d2d4"
+    },
+    "depthDelta": 3,
+    "npsDeltaPercent": -3.2
+  },
+  {
+    "budgetMs": 500,
+    "position": "Kiwipete",
+    "M7": {
+      "depth": 5,
+      "nodes": 59417,
+      "qnodes": 421863,
+      "score": -12,
+      "time": 469,
+      "nps": 1026183,
+      "move": "d5e6"
+    },
+    "M8": {
+      "depth": 7,
+      "nodes": 62732,
+      "qnodes": 358298,
+      "score": -47,
+      "time": 446,
+      "nps": 944013,
+      "move": "e2a6"
+    },
+    "depthDelta": 2,
+    "npsDeltaPercent": -8
+  },
+  {
+    "budgetMs": 500,
+    "position": "Endgame",
+    "M7": {
+      "depth": 9,
+      "nodes": 301224,
+      "qnodes": 220368,
+      "score": 286,
+      "time": 370,
+      "nps": 1409708,
+      "move": "b4f4"
+    },
+    "M8": {
+      "depth": 14,
+      "nodes": 355617,
+      "qnodes": 280189,
+      "score": 287,
+      "time": 416,
+      "nps": 1528379,
+      "move": "b4f4"
+    },
+    "depthDelta": 5,
+    "npsDeltaPercent": 8.4
+  },
+  {
+    "budgetMs": 500,
+    "position": "Promotion tactics",
+    "M7": {
+      "depth": 4,
+      "nodes": 239809,
+      "qnodes": 294463,
+      "score": 9,
+      "time": 469,
+      "nps": 1139172,
+      "move": "c4c5"
+    },
+    "M8": {
+      "depth": 9,
+      "nodes": 89435,
+      "qnodes": 457637,
+      "score": -1,
+      "time": 469,
+      "nps": 1166464,
+      "move": "c4c5"
+    },
+    "depthDelta": 5,
+    "npsDeltaPercent": 2.4
+  },
+  {
+    "budgetMs": 500,
+    "position": "Middlegame",
+    "M7": {
+      "depth": 8,
+      "nodes": 266669,
+      "qnodes": 379731,
+      "score": -80,
+      "time": 469,
+      "nps": 1378251,
+      "move": "c4e6"
+    },
+    "M8": {
+      "depth": 9,
+      "nodes": 277813,
+      "qnodes": 390859,
+      "score": -86,
+      "time": 469,
+      "nps": 1425739,
+      "move": "c4e6"
+    },
+    "depthDelta": 1,
+    "npsDeltaPercent": 3.4
+  },
+  {
+    "budgetMs": 500,
+    "position": "Italian middlegame",
+    "M7": {
+      "depth": 3,
+      "nodes": 239877,
+      "qnodes": 299259,
+      "score": 4,
+      "time": 469,
+      "nps": 1149543,
+      "move": "d7d5"
+    },
+    "M8": {
+      "depth": 8,
+      "nodes": 182178,
+      "qnodes": 391774,
+      "score": 8,
+      "time": 469,
+      "nps": 1223778,
+      "move": "h8g8"
+    },
+    "depthDelta": 5,
+    "npsDeltaPercent": 6.5
+  },
+  {
+    "budgetMs": 500,
+    "position": "In-check evasion",
+    "M7": {
+      "depth": 17,
+      "nodes": 1004949,
+      "qnodes": 235171,
+      "score": 440,
+      "time": 463,
+      "nps": 2678444,
+      "move": "e1e2"
+    },
+    "M8": {
+      "depth": 21,
+      "nodes": 1102581,
+      "qnodes": 137301,
+      "score": 0,
+      "time": 381,
+      "nps": 3254283,
+      "move": "e1e2"
+    },
+    "depthDelta": 4,
+    "npsDeltaPercent": 21.5
+  }
+]

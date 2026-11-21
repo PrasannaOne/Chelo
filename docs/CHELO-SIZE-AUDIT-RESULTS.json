@@ -1,0 +1,43 @@
+{
+  "test": "M4 unified .chelo byte-budget audit",
+  "format": "CHELO v1 / pet V16",
+  "modelBytes": 49368,
+  "modelSha256": "f9ffe3f0dc641c93be26f871086182a82291411a4e4b59c073fcc7c8bfc4022e",
+  "limits": {
+    "freeWholeFileBytes": 51200,
+    "freePetBytes": 48128,
+    "freePlayerMetadataBytes": 2048,
+    "proPetBytes": 512000,
+    "proPetCount": 5,
+    "proWholeFileBytes": 2568192
+  },
+  "fixtures": {
+    "freeSinglePet": {
+      "wholeFileBytes": 47622,
+      "petBytes": 47346,
+      "retainedPositionFingerprints": 1045,
+      "limitBytes": 51200
+    },
+    "proSinglePet": {
+      "wholeFileBytes": 511438,
+      "petBytes": 511202,
+      "retainedPositionFingerprints": 11343,
+      "limitBytes": 512000
+    },
+    "proFivePets": {
+      "wholeFileBytes": 2556399,
+      "petBytesEach": 511207,
+      "retainedPositionFingerprintsEach": 11398,
+      "limitBytes": 2568192
+    }
+  },
+  "freshFiles": {
+    "freeBytes": 708,
+    "proBytes": 668
+  },
+  "bondTrainingSteps": 1,
+  "arenaTrainingSteps": 1,
+  "adapterRoundTrip": "PASS",
+  "sharedModelImmutable": true,
+  "syntheticFixtureOnly": true
+}

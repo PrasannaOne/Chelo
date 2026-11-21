@@ -1,0 +1,79 @@
+{
+  "format": "Chelo Stage 3.8 warmed V8 profile",
+  "runtime": "Node.js V8 on Linux container; not Android hardware",
+  "warmupSearchesPerIsolate": 12,
+  "measuredNodesPerIsolate": 30000,
+  "isolates": [
+    {
+      "move": "e2e4",
+      "score": 21,
+      "depth": 5,
+      "nodes": 30000,
+      "nps": 119048,
+      "dualEvaluations": 18070,
+      "hashVerified": true,
+      "isolate": 0,
+      "inWindowScavenges": 0,
+      "inWindowOtherGC": 0,
+      "inWindowDeopts": 0
+    },
+    {
+      "move": "e2e4",
+      "score": 21,
+      "depth": 5,
+      "nodes": 30000,
+      "nps": 120000,
+      "dualEvaluations": 18070,
+      "hashVerified": true,
+      "isolate": 1,
+      "inWindowScavenges": 0,
+      "inWindowOtherGC": 0,
+      "inWindowDeopts": 0
+    },
+    {
+      "move": "e2e4",
+      "score": 21,
+      "depth": 5,
+      "nodes": 30000,
+      "nps": 111940,
+      "dualEvaluations": 18070,
+      "hashVerified": true,
+      "isolate": 2,
+      "inWindowScavenges": 0,
+      "inWindowOtherGC": 0,
+      "inWindowDeopts": 0
+    },
+    {
+      "move": "e2e4",
+      "score": 21,
+      "depth": 5,
+      "nodes": 30000,
+      "nps": 121457,
+      "dualEvaluations": 18070,
+      "hashVerified": true,
+      "isolate": 3,
+      "inWindowScavenges": 0,
+      "inWindowOtherGC": 0,
+      "inWindowDeopts": 0
+    },
+    {
+      "move": "e2e4",
+      "score": 21,
+      "depth": 5,
+      "nodes": 30000,
+      "nps": 115830,
+      "dualEvaluations": 18070,
+      "hashVerified": true,
+      "isolate": 4,
+      "inWindowScavenges": 0,
+      "inWindowOtherGC": 0,
+      "inWindowDeopts": 0
+    }
+  ],
+  "medianNps": 119048,
+  "meanNps": 117655,
+  "inWindowScavenges": 0,
+  "inWindowOtherGC": 0,
+  "inWindowDeopts": 0,
+  "scope": "Five isolated Node V8 isolates; warmed search window only. No claim about all startup events or Android Chromium."
+}

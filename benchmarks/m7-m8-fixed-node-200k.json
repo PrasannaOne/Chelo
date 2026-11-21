@@ -1,0 +1,149 @@
+[
+  {
+    "name": "Start",
+    "M7": {
+      "depth": 6,
+      "nodes": 96665,
+      "qnodes": 103335,
+      "score": 4,
+      "total": 200000,
+      "move": "g1f3"
+    },
+    "M8": {
+      "depth": 8,
+      "nodes": 95451,
+      "qnodes": 104549,
+      "score": -2,
+      "total": 200000,
+      "move": "d2d4"
+    },
+    "scoreDelta": -6,
+    "depthDelta": 2
+  },
+  {
+    "name": "Kiwipete",
+    "M7": {
+      "depth": 5,
+      "nodes": 20322,
+      "qnodes": 179678,
+      "score": -12,
+      "total": 200000,
+      "move": "d5e6"
+    },
+    "M8": {
+      "depth": 6,
+      "nodes": 28759,
+      "qnodes": 171241,
+      "score": -29,
+      "total": 200000,
+      "move": "d5e6"
+    },
+    "scoreDelta": -17,
+    "depthDelta": 1
+  },
+  {
+    "name": "Endgame",
+    "M7": {
+      "depth": 8,
+      "nodes": 112778,
+      "qnodes": 87222,
+      "score": 182,
+      "total": 200000,
+      "move": "b4f4"
+    },
+    "M8": {
+      "depth": 12,
+      "nodes": 104896,
+      "qnodes": 95104,
+      "score": 240,
+      "total": 200000,
+      "move": "b4f4"
+    },
+    "scoreDelta": 58,
+    "depthDelta": 4
+  },
+  {
+    "name": "Promotion tactics",
+    "M7": {
+      "depth": 4,
+      "nodes": 77956,
+      "qnodes": 122044,
+      "score": 9,
+      "total": 200000,
+      "move": "c4c5"
+    },
+    "M8": {
+      "depth": 8,
+      "nodes": 29731,
+      "qnodes": 170269,
+      "score": -17,
+      "total": 200000,
+      "move": "c4c5"
+    },
+    "scoreDelta": -26,
+    "depthDelta": 4
+  },
+  {
+    "name": "Middlegame",
+    "M7": {
+      "depth": 6,
+      "nodes": 84530,
+      "qnodes": 115470,
+      "score": -77,
+      "total": 200000,
+      "move": "c4e6"
+    },
+    "M8": {
+      "depth": 8,
+      "nodes": 82690,
+      "qnodes": 117310,
+      "score": -80,
+      "total": 200000,
+      "move": "c4e6"
+    },
+    "scoreDelta": -3,
+    "depthDelta": 2
+  },
+  {
+    "name": "Italian middlegame",
+    "M7": {
+      "depth": 3,
+      "nodes": 89514,
+      "qnodes": 110486,
+      "score": 4,
+      "total": 200000,
+      "move": "d7d5"
+    },
+    "M8": {
+      "depth": 7,
+      "nodes": 63592,
+      "qnodes": 136408,
+      "score": 13,
+      "total": 200000,
+      "move": "h8g8"
+    },
+    "scoreDelta": 9,
+    "depthDelta": 4
+  },
+  {
+    "name": "In-check evasion",
+    "M7": {
+      "depth": 13,
+      "nodes": 160071,
+      "qnodes": 39929,
+      "score": 413,
+      "total": 200000,
+      "move": "e1e2"
+    },
+    "M8": {
+      "depth": 19,
+      "nodes": 177021,
+      "qnodes": 22979,
+      "score": 0,
+      "total": 200000,
+      "move": "e1e2"
+    },
+    "scoreDelta": -413,
+    "depthDelta": 6
+  }
+]

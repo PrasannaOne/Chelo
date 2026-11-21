@@ -1,0 +1,12 @@
+{
+  "format": "Chelo KPK WDL bitbase v1",
+  "bytes": 24576,
+  "positions": 196608,
+  "validPositions": 165676,
+  "wonPositions": 111282,
+  "drawnPositions": 54394,
+  "unresolvedCyclesResolvedAsDraw": 17826,
+  "sha256": "348cc0a4d39a152d82ef3a175885404585c1dbc71153fb4b9d51cd6d70038ca0",
+  "method": "retrograde attractor / minimax WDL; 1-bit per indexed state; horizontal mirror canonicalisation; ignores 50-move counter and repetition",
+  "seconds": 1.328
+}

@@ -4,34 +4,35 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#10131b">
-  <meta name="description" content="Raise a little chess creature. Chessling learns as you play, entirely offline.">
-  <title>Chessling V4 | Raise a chess monster</title>
-  <link rel="manifest" href="manifest.json">
-  <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="style.css">
+  <meta name="description" content="Raise a little chess companion. Chelo learns as you play, entirely offline.">
+  <title>Chelo | Your little chess companion</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./assets/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./assets/style.css">
 </head>
 <body>
   <main class="app-shell">
     <header class="topbar">
-      <a class="brand" href="#top" aria-label="Chessling home"><span class="brand-mark">♟</span><span>chessling</span></a>
+      <a class="brand" href="#top" aria-label="Chelo home"><span class="brand-mark">♟</span><span>chelo</span></a>
       <span class="offline-pill"><i></i> OFFLINE READY</span>
     </header>
 
     <section class="intro" id="top">
       <div class="eyebrow">YOUR LITTLE CHESS COMPANION</div>
-      <h1>Raise a <span>chess monster.</span></h1>
-      <p>It starts at 100. Every move becomes experience.</p>
+      <h1>Raise a <span>Chelo.</span></h1>
+      <p>A little chess companion. Every game becomes part of its story.</p>
     </section>
 
-    <section class="pet-strip" aria-label="Your Chessling">
+    <section class="pet-strip" aria-label="Your Chelo">
       <div class="pet-avatar" id="petAvatar" aria-hidden="true">🐣</div>
       <div class="pet-main">
-        <div class="pet-name-line"><strong id="petName">Chessling</strong><button class="text-button" id="renameBtn" type="button">Rename</button></div>
+        <div class="pet-name-line"><strong id="petName">Chelo</strong><button class="text-button" id="renameBtn" type="button">Rename</button></div>
         <div class="pet-sub" id="petMood">Hatchling · Still finding its style</div>
         <div class="pet-stats">
-          <div><span>GROWTH ELO*</span><b id="eloValue">100</b></div>
-          <div><span>GENERATION</span><b id="genValue">1</b></div>
-          <div><span>W · L · D</span><b id="recordValue">0 · 0 · 0</b></div>
+          <div><span>GROWTH LEVEL</span><b id="growthValue">1</b></div>
+          <div><span>MASTERY</span><b id="masteryValue">Unbenchmarked</b></div>
+          <div><span>ARENA RANK</span><b id="arenaRankValue">Unranked</b></div>
+          <div><span>TRAINER MATCHES · W/L/D</span><b id="recordValue">0 · 0 · 0</b></div>
         </div>
       </div>
       <div class="pet-status"><span class="pulse"></span><span id="learningState">Ready</span></div>
@@ -47,7 +48,7 @@
           <div id="chessboard" class="chessboard" role="grid" aria-label="Chess board"></div>
         </div>
         <div class="board-bottomline">
-          <div><span class="side-dot black-dot"></span><strong id="blackName">Chessling</strong><span class="muted" id="blackMode">· Black</span></div>
+          <div><span class="side-dot black-dot"></span><strong id="blackName">Chelo</strong><span class="muted" id="blackMode">· Black</span></div>
           <div class="turn-state" id="turnState">Your turn</div>
         </div>
         <div class="game-controls">
@@ -62,46 +63,26 @@
       <aside class="side-panel">
         <section class="panel-card brain-card">
           <div class="panel-heading"><div><span class="eyebrow">INSIDE ITS HEAD</span><h2>Growing brain</h2></div><span class="brain-icon">✳</span></div>
-          <p class="panel-copy">A tiny neural value model learns from positions, move-by-move feedback and replayed experience. Each pet keeps its own weights and memories.</p>
+          <p class="panel-copy">Chelo shares one hosted chess brain. Each pet keeps only its own compact Bond, Arena learning, memories and personality in your player save.</p>
           <div class="brain-metrics">
-            <div><span>Remembered positions</span><strong id="memoryCount">0</strong></div>
-            <div><span>Neural updates</span><strong id="modelUpdates">0</strong></div>
-            <div><span>Replay memories</span><strong id="replayCount">0</strong></div>
-            <div><span>Brain size</span><strong id="brainSize">0.0 KB <small>/ 50 KiB</small></strong></div>
+            <div><span>Position memories</span><strong id="memoryCount">0</strong></div>
+            <div><span>Adaptive challenge</span><strong id="challengeValue">300 · Adaptive</strong></div>
+            <div><span>Bond adapter updates</span><strong id="modelUpdates">0</strong></div>
+            <div><span>Arena adapter updates</span><strong id="policyUpdates">0</strong></div>
+            <div><span>Complete player save</span><strong id="brainSize">0.0 KiB <small>/ 100 KiB</small></strong></div>
           </div>
           <div class="budget-track"><div id="budgetFill"></div></div>
-          <div class="budget-caption"><span>Complete saved brain</span><span>50 KiB hard cap</span></div>
-          <div class="learning-note">Piece bars show the model’s current relative response to material features. They are learned signals, not fixed chess-piece values.</div>
-          <div class="weight-list" id="weightList">
-            <div class="weight-row"><span>♟ Pawn</span><div><i id="weight-p"></i></div><b id="value-p">+0.00</b></div>
-            <div class="weight-row"><span>♞ Knight</span><div><i id="weight-n"></i></div><b id="value-n">+0.00</b></div>
-            <div class="weight-row"><span>♝ Bishop</span><div><i id="weight-b"></i></div><b id="value-b">+0.00</b></div>
-            <div class="weight-row"><span>♜ Rook</span><div><i id="weight-r"></i></div><b id="value-r">+0.00</b></div>
-            <div class="weight-row"><span>♛ Queen</span><div><i id="weight-q"></i></div><b id="value-q">+0.00</b></div>
-          </div>
+          <div class="budget-caption"><span>Complete .chelo file</span><span id="budgetLimitLabel">100 KiB Free limit</span></div>
+          <div class="learning-note">The shared C++ engine and V37 base model are hosted once. Your .chelo file contains player data and individual pet learning only. Adaptive challenge is an internal estimate, not a certified chess Elo.</div>
           <div class="learning-layers">
-            <div><b>01 · Habit mirroring</b><span>Remembers opening patterns and familiar replies.</span></div>
-            <div><b>02 · Position & trap memory</b><span>Remembers decisions and their consequences in familiar positions.</span></div>
-            <div><b>03 · Neural value learning</b><span>Adjusts its own network from game outcomes, then replays useful experiences.</span></div>
+            <div><b>01 · Bond learning</b><span>Adapts to the individual trainer relationship.</span></div>
+            <div><b>02 · Arena learning</b><span>Accumulates battle experience separately from the trainer bond.</span></div>
+            <div><b>03 · Compressed memories</b><span>Keeps useful position and outcome summaries without full replay duplication.</span></div>
+            <div><b>04 · Pet identity</b><span>Preserves name, personality, growth, mastery and progression.</span></div>
           </div>
           <div class="learning-note" id="learningNote">Its first memories are being formed.</div>
+          <div class="learning-note" id="memoryEcho" aria-live="polite">No completed-game memories yet.</div>
           <div class="policy-summary" id="policySummary">Learned preferences: 0/4 active</div>
-        </section>
-
-        <section class="panel-card practice-card" id="practiceCard">
-          <div class="panel-heading"><div><span class="eyebrow">WATCH IT THINK</span><h2>Practice mode</h2></div><span class="practice-mark">♟ ↔ ♟</span></div>
-          <p class="panel-copy">Your Chessling plays both colours, one move at a time. Watch its decisions unfold on the board. Practice never awards Elo or match wins.</p>
-          <div class="practice-actions">
-            <button class="btn btn-primary" id="startPracticeBtn" type="button">Start practice</button>
-            <button class="btn btn-secondary" id="pausePracticeBtn" type="button" disabled>Pause</button>
-            <button class="btn btn-secondary" id="stopPracticeBtn" type="button" disabled>Stop</button>
-          </div>
-          <div class="practice-skip-row">
-            <button class="btn btn-locked" id="skipPracticeBtn" type="button" disabled>Skip to end <span>PRO</span></button>
-            <span>Fast-forward is a future Pro convenience.</span>
-          </div>
-          <div class="practice-status" id="practiceStatus">Optional self-play. Watch every move as your pet tests its ideas.</div>
-          <div class="practice-count">Practice sessions <strong id="practiceGamesValue">0</strong></div>
         </section>
 
         <section class="panel-card history-card">
@@ -109,14 +90,14 @@
           <ol id="moveList" class="move-list"><li class="empty-moves">Your first move is waiting.</li></ol>
         </section>
 
-        <section class="soul-card">
-          <div><strong>Keep its soul safe.</strong><p>Export or restore its name, brain, memories, traits and progress.</p></div>
-          <div class="soul-actions"><button class="btn btn-secondary" id="exportBtn" type="button">Export Soul</button><button class="btn btn-secondary" id="importBtn" type="button">Import Soul</button><input type="file" id="importFile" accept=".json,application/json" hidden></div>
+        <section class="chelo-card">
+          <div><strong>Keep your Chelo collection safe.</strong><p>One .chelo file contains your player data and every pet.</p></div>
+          <div class="chelo-actions"><button class="btn btn-secondary" id="exportBtn" type="button">Export .chelo</button><button class="btn btn-secondary" id="importBtn" type="button">Import .chelo</button><input type="file" id="importFile" accept=".chelo,application/vnd.chelo+json,application/json" hidden></div>
         </section>
       </aside>
     </section>
 
-    <footer><span>CHESSLING · LOCAL FOUNDATION</span><span>*Growth rating is provisional. Arena Elo is separate.</span></footer>
+    <footer><span>CHELO · YOUR LITTLE CHESS COMPANION</span><span>Growth is experience · Mastery needs benchmarks · Arena rank needs verified battles</span></footer>
   </main>
 
   <dialog id="promotionDialog" class="promotion-dialog">
@@ -124,8 +105,13 @@
   </dialog>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <script src="chess.js"></script>
-  <script src="brain.js"></script>
-  <script src="app.js"></script>
+  <script src="./src/engine/polyglot-random.js"></script>
+  <script src="./src/engine/chess.js"></script>
+  <script src="./src/engine/endgame-kpk.js"></script>
+  <script src="./src/engine/fast-search.js"></script>
+  <script src="./src/nnue/dual-nnue.js"></script>
+  <script src="./src/soul/chelo-save.js"></script>
+  <script src="./src/soul/brain.js"></script>
+  <script src="./src/app/app.js"></script>
 </body>
 </html>

@@ -1,0 +1,45 @@
+{
+  "format": "Chelo Stage 3.8 vs original Stage 3.7 source tactical parity",
+  "dataset": "benchmarks/data/mate-in-one-50.json",
+  "positions": 50,
+  "protocol": {
+    "nodeBudgetPerPosition": 8000,
+    "deterministicNodes": true,
+    "book": false,
+    "policy": false
+  },
+  "bitIdenticalResults": 50,
+  "differences": 0,
+  "fieldsCompared": [
+    "bestMove",
+    "evaluationScore",
+    "nodes"
+  ],
+  "baselineSourceHashes": {
+    "chess": {
+      "stage37SourceSha256": "a344b792d6a778a905872a14541dcea11b8b02f4c9555edd18d8923d26d13077",
+      "stage38SourceSha256": "fcba0a9e64b6377b6aa525f2ff3f8f0004c2104214ceb435d813a8474a22eb12"
+    },
+    "fastSearch": {
+      "stage37SourceSha256": "0b5eb14ad872fed1a88ecf7b9e7870f7de9132c855383a4877b75bec3a178aa4",
+      "stage38SourceSha256": "f52fd31cfb07f63e0c3579ba93dfc8344fb0d6df017955de43f347492d21095c"
+    },
+    "endgame": {
+      "stage37SourceSha256": "6b0f0f5d556776195f3140ca4406219c8d99e4180d6a71440caee4c41f8b14f5",
+      "stage38SourceSha256": "f54ddf86dd02cf7f8d50788994b473c8c2998d1e263f18ea61f4cc16000108ba"
+    },
+    "polyglot": {
+      "stage37SourceSha256": "14416bf01e49935e9c55e3d1a24b718a0e3ab289d1bcd993a37921a20c469ca9",
+      "stage38SourceSha256": "53b615ea4e5dfd1ca9f768dcaf63b0159f84f8b0ad68f9ffe4bc2d9255d40f37"
+    },
+    "dualNnue": {
+      "stage37SourceSha256": "2f065f95de379f81c59f06884a6c834f6513d5340162a149fe0e554ae297246e",
+      "stage38SourceSha256": "173721f23ad0950f541d6fade3abde63eb7cb7b719dee9227d6aa440f0a62c90"
+    },
+    "soul": {
+      "stage37SourceSha256": "d15bfff599b2f707a9ffc2f9c9acd4db35fb3b50ac429c89ea5fcf3b7d128c8f",
+      "stage38SourceSha256": "793f492f7e3d56cf9efcee49da51cbab648a7c1d8f4c3e032962ca02aaa92420"
+    }
+  },
+  "scope": "Executed against the original Stage 3.7 source archive and the Stage 3.8 reorganised source. The original source snapshot is not duplicated into the release package."
+}

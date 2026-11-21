@@ -1,0 +1,104 @@
+{
+  "release": "Chelo V14 Stage 3.8",
+  "status": "ready-to-commit engineering package; broad tactical and physical mobile certification outstanding",
+  "branding": {
+    "product": "Chelo",
+    "uiManifestWorkerDocs": "rebranded",
+    "legacyV15SoulImport": "preserved",
+    "legacyRuntimeAndStorageAliases": "preserved for migration"
+  },
+  "model": {
+    "file": "models/dual-nnue-v37.bin",
+    "bytes": 49368,
+    "magic": "C36N",
+    "version": 1,
+    "features": 768,
+    "hiddenPerPerspective": 32,
+    "sha256": "f9ffe3f0dc641c93be26f871086182a82291411a4e4b59c073fcc7c8bfc4022e",
+    "mainThreadShaPin": "pass",
+    "workerShaPin": "pass"
+  },
+  "testGroups": {
+    "coreAndRepository": "pass",
+    "searchAndBoard": "pass",
+    "dualNnueAndSoul": "pass",
+    "workerAndArena": "pass",
+    "learningAndSoulMigrations": "pass",
+    "tacticalAndTimeBudget": "pass",
+    "warmedV8Profile": "pass"
+  },
+  "engine": {
+    "standardPerftStartDepth4": 197281,
+    "kiwipeteDepth3": 97862,
+    "randomizedMakeUnmakePlies": 180,
+    "dualAccumulatorIncrementalPlies": 90,
+    "specialMoves": [
+      "en-passant",
+      "castling",
+      "promotion"
+    ],
+    "timeBudget": {
+      "requestedMs": 20,
+      "observedMsRange": [
+        20,
+        21
+      ],
+      "legalMoveReturned": true
+    }
+  },
+  "transpositionTable": {
+    "workers": 4,
+    "writeAttempts": 200000,
+    "corruptedSuccessfulProbes": 0,
+    "hungWorkers": 0,
+    "fullKeyCollisionVerification": "pass"
+  },
+  "soul": {
+    "version": 15,
+    "bondLoraRank": 1,
+    "arenaLoraRank": 2,
+    "standaloneBondAndArenaRoundTrip": "pass",
+    "legacyCheloMigrationSource": "Chessling-branded V15 full Soul import: bit-identical adapter tensors"
+  },
+  "tactical": {
+    "dataset": "bundled 50-position mate-in-one retention subset",
+    "nodesPerPosition": 8000,
+    "stage37FoundMate": 50,
+    "stage36FoundMate": 50,
+    "illegalMoves": 0,
+    "regressionsInThisSubset": 0,
+    "fullWACEigenmannSTS": "not run; datasets not included",
+    "stage38VsOriginalStage37": {
+      "positions": 50,
+      "bitIdenticalMoveScoreNodes": 50,
+      "differences": 0,
+      "protocolNodesPerPosition": 8000,
+      "report": "benchmarks/results/STAGE38-VS-STAGE37-50-MATE-TACTICAL.json"
+    }
+  },
+  "v8Profile": {
+    "runtime": "Node.js V8 Linux container, not Android",
+    "isolates": 5,
+    "warmupsPerIsolate": 12,
+    "nodesPerMeasuredWindow": 30000,
+    "medianNps": 119048,
+    "meanNps": 117655,
+    "inWindowScavenges": 0,
+    "inWindowOtherGC": 0,
+    "inWindowDeoptimizations": 0,
+    "totalAllocationCertification": false
+  },
+  "deployment": {
+    "relativeUrls": "pass",
+    "githubPagesSubpath": "pass; SharedArrayBuffer unavailable means single-worker Apex fallback",
+    "cloudflarePagesCoopCoepHeaders": "included",
+    "runtimeExternalCdnDependencies": 0,
+    "serviceWorkerPrecacheEntries": 20,
+    "staticBuildOutput": "_site/"
+  },
+  "knownLimits": [
+    "No full WAC, Eigenmann or STS tactical suite was available.",
+    "No physical Android MediaTek/Snapdragon or mobile Chromium profiling was performed.",
+    "The active V14-named pet-learning base remains because the current pet model and Soul migration depend on it."
+  ]
+}

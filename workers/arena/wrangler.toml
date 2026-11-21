@@ -1,0 +1,20 @@
+name = "chelo-arena"
+main = "worker.mjs"
+compatibility_date = "2026-11-19"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "chelo-arena"
+database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+
+# Set CORS_ORIGIN to the deployed Chelo Pages origin before production use.
+[vars]
+CORS_ORIGIN = "https://YOUR-CHELO-PAGES-DOMAIN.pages.dev"
+
+[[durable_objects.bindings]]
+name = "PLAYER_SAVES"
+class_name = "PlayerSaveDO"
+
+[[migrations]]
+tag = "v1-player-save"
+new_sqlite_classes = ["PlayerSaveDO"]

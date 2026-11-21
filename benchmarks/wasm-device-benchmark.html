@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Chelo WASM Device Benchmark</title>
+<style>
+:root{color-scheme:dark;font:16px/1.5 system-ui,sans-serif;background:#111018;color:#f4f0fa}*{box-sizing:border-box}body{max-width:780px;margin:0 auto;padding:24px 16px 48px}h1{font-size:1.65rem;margin:0 0 6px}p{color:#b9b1c5;margin:6px 0 18px}.card{border:1px solid #393344;border-radius:14px;padding:16px;margin:14px 0;background:#191622}button{border:0;border-radius:10px;background:#c7a8ff;color:#21172d;padding:12px 16px;font:600 1rem system-ui;cursor:pointer}button:disabled{opacity:.55;cursor:wait}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#0b0a10;border-radius:10px;padding:14px;color:#d8c9ee;min-height:100px;font-size:12px}.muted{font-size:.85rem;color:#9c93a8}label{display:block;margin:12px 0 5px;color:#d7cde2}input{width:100%;max-width:180px;border:1px solid #514760;border-radius:8px;padding:9px;background:#100e16;color:#fff;font:inherit}
+</style>
+</head>
+<body>
+<h1>Chelo WebAssembly Device Benchmark</h1>
+<p>Run this page on the Android phone or browser you want to measure. It loads the pinned V37 model and benchmarks the actual C++/WASM engine running on this device.</p>
+<div class="card">
+  <label for="nodes">Fixed search-node budget</label><input id="nodes" type="number" min="50000" max="5000000" step="50000" value="500000">
+  <p class="muted">The benchmark reports perft move-generation speed and fixed-node search speed. Run once after the device cools, then repeat to check thermal throttling.</p>
+  <button id="run">Run WASM benchmark</button> <button id="copy" disabled>Copy report</button>
+</div>
+<div class="card"><strong>Status</strong><pre id="status">Ready. Tap “Run WASM benchmark”.</pre></div>
+<div class="card"><strong>Results</strong><pre id="result">No results yet.</pre></div>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+let reportText='';
+function writeFen(e, memory, fen){
+  const ptr=e.chelo_fen_buffer(),bytes=new TextEncoder().encode(fen);
+  if(bytes.length>=128)throw new Error('FEN exceeds 128-byte engine buffer');
+  const view=new Uint8Array(memory.buffer);view.fill(0,ptr,ptr+128);view.set(bytes,ptr);
+  if(!e.chelo_set_fen(ptr))throw new Error('Engine rejected benchmark FEN');
+}
+function readSearch(e,memory,ptr,elapsed){
+  const d=new DataView(memory.buffer),nodes=Number(d.getBigUint64(ptr+16,true)),qnodes=Number(d.getBigUint64(ptr+24,true));
+  const movePtr=e.chelo_bestmove_text(),view=new Uint8Array(memory.buffer);let bestmove='';
+  for(let i=0;i<6&&view[movePtr+i];i++)bestmove+=String.fromCharCode(view[movePtr+i]);
+  const total=nodes+qnodes;
+  return {depth:d.getInt32(ptr+8,true),nodes:total,mainNodes:nodes,qnodes,timeMs:+elapsed.toFixed(2),nps:Math.round(total*1000/Math.max(1,elapsed)),bestmove,scoreCp:d.getInt32(ptr+4,true)};
+}
+async function loadEngine(){
+  const [wasmResponse,modelResponse]=await Promise.all([fetch('../wasm/chelo.wasm',{cache:'no-store'}),fetch('../models/dual-nnue-v37.bin',{cache:'no-store'})]);
+  if(!wasmResponse.ok||!modelResponse.ok)throw new Error('Could not fetch chelo.wasm or the V37 NNUE model. Serve the repository root over HTTP.');
+  const wasmBytes=await wasmResponse.arrayBuffer(),model=new Uint8Array(await modelResponse.arrayBuffer());
+  const loaded=await WebAssembly.instantiate(wasmBytes,{env:{chelo_host_now_ms:()=>BigInt(Math.floor(performance.now()))}});
+  const e=loaded.instance.exports;if(e.__wasm_call_ctors)e.__wasm_call_ctors();
+  if(e.chelo_abi_version()!==1)throw new Error('WASM ABI mismatch');
+  if(model.length!==49368)throw new Error(`Unexpected V37 model size: ${model.length}`);
+  new Uint8Array(loaded.instance.exports.memory.buffer,e.chelo_model_buffer(),model.length).set(model);
+  if(!e.chelo_load_model())throw new Error('WASM engine rejected the V37 model');
+  return {e,memory:e.memory};
+}
+async function run(){
+  $('run').disabled=true;$('copy').disabled=true;$('status').textContent='Loading C++/WASM engine and frozen V37 model…';
+  try{
+    const {e,memory}=await loadEngine();
+    const positions=[
+      {name:'Start position',fen:'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'},
+      {name:'Kiwipete',fen:'r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1'},
+      {name:'Middlegame',fen:'r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10'}
+    ];
+    const nodeBudget=BigInt(Math.max(50000,Math.min(5000000,Number($('nodes').value)||500000)));
+    const perftStart=performance.now();writeFen(e,memory,positions[0].fen);const perft=e.chelo_perft(5);const perftMs=performance.now()-perftStart;
+    if(Number(perft)!==4865609)throw new Error(`Perft-5 mismatch: ${perft}`);
+    const searches=[];
+    for(const p of positions){
+      writeFen(e,memory,p.fen);e.chelo_clear_hash();
+      const start=performance.now(),ptr=e.chelo_search_nodes(32,nodeBudget),elapsed=performance.now()-start;
+      searches.push({position:p.name,...readSearch(e,memory,ptr,elapsed)});
+    }
+    const info={
+      benchmark:'Chelo M8 C++/WASM Android/browser device benchmark',
+      timestamp:new Date().toISOString(),
+      device:{userAgent:navigator.userAgent,platform:navigator.platform||'unknown',hardwareConcurrency:navigator.hardwareConcurrency||null,deviceMemoryGb:navigator.deviceMemory||null,screen:`${screen.width}x${screen.height}`,online:navigator.onLine},
+      wasm:{abi:e.chelo_abi_version(),modelBytes:49368,perft5:Number(perft),perft5Ms:+perftMs.toFixed(2),perft5Nps:Math.round(Number(perft)*1000/perftMs)},
+      nodeBudget:Number(nodeBudget),searches
+    };
+    reportText=JSON.stringify(info,null,2);$('result').textContent=reportText;$('status').textContent='Completed. These are measurements from this browser/device, not desktop estimates.';$('copy').disabled=false;
+  }catch(error){$('status').textContent=`Benchmark failed: ${error.message}`;console.error(error);}
+  finally{$('run').disabled=false;}
+}
+$('run').addEventListener('click',run);
+$('copy').addEventListener('click',async()=>{await navigator.clipboard.writeText(reportText);$('status').textContent='Report copied.';});
+</script>
+</body>
+</html>

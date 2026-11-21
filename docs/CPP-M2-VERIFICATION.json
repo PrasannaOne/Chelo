@@ -1,0 +1,57 @@
+{
+  "milestone": "Chelo V15-CPP M2",
+  "baseline": "Chelo-V15-CPP-M1",
+  "status": "PASS in Linux x86_64 sandbox; physical Android ARM64 validation pending",
+  "frozen_model": {
+    "file": "models/dual-nnue-v37.bin",
+    "bytes": 49368,
+    "sha256": "f9ffe3f0dc641c93be26f871086182a82291411a4e4b59c073fcc7c8bfc4022e"
+  },
+  "unchanged_from_m1": [
+    "src/soul/brain.js",
+    "src/app/app.js",
+    "src/worker/ai-worker.js"
+  ],
+  "core_checks": {
+    "startpos_perft_4": 197281,
+    "kiwipete_perft_3": 97862,
+    "stage310_static_evaluation_positions": 7,
+    "nonzero_bond_adapter": true,
+    "nonzero_arena_adapter": true,
+    "incremental_nnue_vs_recompute": "PASS",
+    "incremental_zobrist_roundtrip": "PASS",
+    "castle_en_passant_promotion_accumulators": "PASS",
+    "see_reference_playouts": 160,
+    "attack_reference_playouts": 160,
+    "repetition_draw": "PASS",
+    "rule50_draw": "PASS",
+    "mate_in_one": "PASS",
+    "fixed_node_30000_repeatability": "PASS",
+    "native_wasm_fixed_node": "bit-identical in sandbox"
+  },
+  "whole_repository": {
+    "run_cpp_m2_tests": "PASS",
+    "run_tests": "PASS",
+    "static_site_build": "PASS",
+    "address_sanitizer": "no findings in --verify and depth-5/depth-3 search smoke tests",
+    "undefined_behavior_sanitizer": "no findings in --verify and depth-5/depth-3 search smoke tests"
+  },
+  "benchmark": {
+    "details": "docs/CPP-M2-PERFORMANCE.md",
+    "500ms_median_nps_change": 4.83,
+    "3000ms_median_nps_change": 1.72,
+    "depth_gain": false,
+    "elo_claim": false,
+    "gauntlets_run": false
+  },
+  "remaining_gates": [
+    "Physical Termux/Android ARM64 compile and runtime validation",
+    "Real mobile browser WebAssembly validation",
+    "Broader transposition-table collision/replacement tests",
+    "Explicit mate-score transposition tests",
+    "Additional tactical/endgame suites and measured playing-strength testing",
+    "Personality/memory-to-engine behaviour bridge",
+    "Compact portable Soul format migration",
+    "Version-pinned and server-verifiable ranked Arena matches"
+  ]
+}

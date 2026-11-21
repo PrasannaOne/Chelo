@@ -1,0 +1,98 @@
+{
+  "release": "Chelo V15 CPP M8",
+  "environment": {
+    "os": "Linux x86_64 (KVM virtual machine)",
+    "cpu": "AMD EPYC 9V74",
+    "compiler": "Clang 17.0.0",
+    "node": "v22.16.0",
+    "androidDeviceBenchmark": false
+  },
+  "model": {
+    "file": "models/dual-nnue-v37.bin",
+    "bytes": 49368,
+    "sha256": "f9ffe3f0dc641c93be26f871086182a82291411a4e4b59c073fcc7c8bfc4022e",
+    "changed": false
+  },
+  "native": {
+    "verify": "PASS",
+    "perft": {
+      "startposDepth5": 4865609,
+      "kiwipeteDepth3": 97862,
+      "position3Depth4": 43238,
+      "position4Depth3": 9467,
+      "position5Depth3": 62379,
+      "position6Depth3": 89890
+    },
+    "attackParity": "PASS",
+    "seeParity": "PASS",
+    "specialTransitions": "PASS",
+    "incrementalNNUE": "PASS",
+    "zobristRoundtrip": "PASS",
+    "sevenPositionV37AndAdapterEvaluationParity": "PASS",
+    "seeExplicitPositions": 19,
+    "randomSeePlayouts": 160,
+    "randomAttackPlayouts": 160,
+    "fixedNodeRepeatability": "PASS",
+    "repetitionRule50AndRootDraw": "PASS",
+    "mateInOne": {
+      "positions": 50,
+      "found": 50,
+      "illegalMoves": 0,
+      "nodeBudgetPerPosition": 8000
+    },
+    "pathSensitiveRootBestMove": {
+      "cases": 2,
+      "positions": [
+        "start position at halfmove clock 90",
+        "start position after one complete knight repetition"
+      ],
+      "moves": [
+        "d2d4",
+        "d2d4"
+      ],
+      "result": "PASS"
+    }
+  },
+  "uciTimeManagement": {
+    "movetime160ms": {
+      "searchMs": 129,
+      "depth": 7,
+      "wallMs": 137,
+      "nodes": 187392
+    },
+    "clockControl": {
+      "searchMs": 134,
+      "depth": 8,
+      "wallMs": 140,
+      "nodes": 193939
+    },
+    "fixedNodes": {
+      "totalNodes": 30000,
+      "searchMs": 21,
+      "depth": 5,
+      "wallMs": 28
+    },
+    "result": "PASS"
+  },
+  "webassembly": {
+    "build": "PASS",
+    "staticEvaluationAndAdapterParity": "PASS",
+    "extraPerftCases": 4,
+    "nativeWasmFixedNodeSearchParity": "bit-identical",
+    "result": "PASS",
+    "managedTimeSearchMs": 56.06
+  },
+  "uciSmokeAgainstStage39Js": {
+    "games": 20,
+    "pairedOpenings": 10,
+    "movetimeMs": 10,
+    "maxPlies": 40,
+    "wins": 1,
+    "losses": 0,
+    "draws": 19,
+    "completed": true,
+    "purpose": "protocol and legal-move smoke only",
+    "eloInterpretation": "not meaningful; do not use as a strength claim"
+  },
+  "strengthClaim": "not established"
+}

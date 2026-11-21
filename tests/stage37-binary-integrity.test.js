@@ -1,0 +1,11 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
+const root=path.resolve(__dirname,'..'),bin=fs.readFileSync(path.join(root,'models/dual-nnue-v37.bin'));
+const sha=crypto.createHash('sha256').update(bin).digest('hex');
+const pinned=(fs.readFileSync(path.join(root,'src/worker/ai-worker.js'),'utf8').match(/const DUAL_NNUE_SHA256 = '([0-9a-f]{64})';/)||[])[1];
+const checksum=(fs.readFileSync(path.join(root,'models','dual-nnue-v37.sha256'),'utf8').trim().match(/^([0-9a-f]{64})\s+dual-nnue-v37\.bin$/)||[])[1];
+assert.equal(bin.length,49368);assert.equal(bin.toString('ascii',0,4),'C36N');
+assert.equal(bin.readUInt16LE(4),1);assert.equal(bin.readUInt16LE(6),768);assert.equal(bin.readUInt16LE(8),32);assert.equal(bin.readUInt16LE(10),1);assert.equal(bin.readUInt32LE(12),1048576);assert.equal(bin.readUInt32LE(16),0);
+assert.equal(sha,'f9ffe3f0dc641c93be26f871086182a82291411a4e4b59c073fcc7c8bfc4022e');assert.equal(pinned,sha);assert.equal(checksum,sha);
+const report={format:'Stage 3.7 C36N binary integrity',bytes:bin.length,sha256:sha,header:{magic:'C36N',version:1,features:768,hidden:32,flags:1,outputDivisor:1048576,reserved:0},workerShaPin:'matches',checksumManifest:'matches'};
+console.log(JSON.stringify(report,null,2));

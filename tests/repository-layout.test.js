@@ -1,0 +1,28 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),{execFileSync}=require('node:child_process');
+const root=path.resolve(__dirname,'..');
+const read=p=>fs.readFileSync(path.join(root,p),'utf8');
+const html=read('index.html'),worker=read('src/worker/ai-worker.js'),sw=read('sw.js'),app=read('src/app/app.js'),css=read('assets/style.css'),manifest=JSON.parse(read('manifest.webmanifest'));
+assert(html.includes('<title>Chelo | Your little chess companion</title>'));
+assert(html.includes('./src/engine/fast-search.js')&&html.includes('./src/nnue/dual-nnue.js')&&html.includes('./src/soul/brain.js')&&html.includes('./src/app/app.js'));
+assert(!/<script[^>]+src=["']https?:/i.test(html)&&!/<link[^>]+href=["']https?:/i.test(html)&&!/@import\s+url\(["']?https?:/i.test(css),'runtime CDN dependency found');
+assert(/new Worker\(new URL\('\.\/src\/worker\/ai-worker\.js', document\.baseURI\)/.test(app),'AI worker URL must resolve from the repository base path');
+assert(app.indexOf('./src/worker/ai-worker.js')>=0&&app.includes('loadDualModel()')&&app.includes('brain.chooseMove(chess, {maxNodes:profile.maxNodes,maxTimeMs:profile.maxTimeMs,maxDepth:profile.maxDepth,bookBinary:openingBookBinary,usePolicy:false})')&&app.includes("mode:'adaptive'"),'main-thread fallback and Worker must use the verified FastSearch path with adaptive companion budgets');
+assert(app.includes("const LEGACY_PET_STORAGE_KEY = 'chessling_pet_1'")&&app.includes("const PET_STORAGE_KEY = 'chelo_pet_1'"),'legacy pet save migration keys missing');
+const workerImports=[...worker.matchAll(/importScripts\(([^;]+)\);/g)].flatMap(m=>[...m[1].matchAll(/'([^']+)'/g)].map(x=>x[1]));
+for(const rel of workerImports){const abs=path.resolve(root,'src/worker',rel);assert(fs.existsSync(abs),`worker import path missing: ${rel}`);}
+for(const rel of ['../../models/base-v14-float32.json','../../models/polyglot-book.bin','../../models/dual-nnue-v37.bin','../../wasm/chelo.wasm'])assert(fs.existsSync(path.resolve(root,'src/worker',rel)),`worker fetch asset missing: ${rel}`);
+const assets=[...sw.matchAll(/'\.\/([^']+)'/g)].map(m=>m[1]);
+for(const asset of assets)assert(fs.existsSync(path.join(root,asset)),`service-worker precache path missing: ${asset}`);
+assert.equal(manifest.start_url,'./');assert.equal(manifest.scope,'./');assert.equal(manifest.short_name,'Chelo');
+assert(fs.existsSync(path.join(root,'.nojekyll')),'GitHub Pages .nojekyll missing');
+assert(fs.existsSync(path.join(root,'src/uci/chelo-uci.js')),'Node UCI wrapper missing');
+assert(fs.existsSync(path.join(root,'tests/uci-gauntlet.js')),'paired UCI gauntlet missing');
+execFileSync('sh',['build-static.sh'],{cwd:root,stdio:'ignore'});
+assert(!fs.existsSync(path.join(root,'_site/src/uci')),'development UCI wrapper must stay out of the browser deployment artifact');
+for(const asset of ['index.html','manifest.webmanifest','sw.js','_headers','assets/style.css','src/worker/ai-worker.js','models/dual-nnue-v37.bin','wasm/chelo.wasm'])assert(fs.existsSync(path.join(root,'_site',asset)),`static deployment artifact missing: ${asset}`);
+assert(!fs.existsSync(path.join(root,'_site','tests'))&&!fs.existsSync(path.join(root,'_site','workers')),'development or Arena Worker source leaked into the static site artifact');
+assert(read('_headers').includes('Cross-Origin-Embedder-Policy: require-corp'),'Cloudflare Pages COEP header missing');
+assert(read('src/worker/ai-worker.js').includes("const DUAL_NNUE_SHA256 = 'f9ffe3f0dc641c93be26f871086182a82291411a4e4b59c073fcc7c8bfc4022e'"));
+assert(read('src/app/app.js').includes("const DUAL_MODEL_SHA256 = 'f9ffe3f0dc641c93be26f871086182a82291411a4e4b59c073fcc7c8bfc4022e'"));
+console.log(JSON.stringify({format:'Chelo Stage 3.8 repository/deployment path audit',relativeWorkerImports:workerImports.length,precacheAssets:assets.length,githubPagesSubpath:'relative URL resolution passed',cloudflarePagesIsolationHeaders:'present; GitHub Pages safely falls back without SAB',staticBuild:'_site contains runtime only',runtimeExternalCDNs:0,modelShaPins:'main thread and worker match'},null,2));
