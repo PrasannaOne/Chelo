@@ -1,0 +1,40 @@
+name: Build Chelo WASM Engine
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'cpp/**'
+      - 'build_wasm.sh'
+      - '.github/workflows/build-wasm.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-wasm:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Clang and LLD
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang lld
+
+      - name: Build wasm/chelo.wasm
+        run: bash ./build_wasm.sh
+
+      - name: Commit updated wasm/chelo.wasm
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if ! git diff --quiet wasm/chelo.wasm; then
+            git add wasm/chelo.wasm
+            git commit -m "chore: rebuild wasm/chelo.wasm [skip ci]"
+            git push
+          else
+            echo "wasm/chelo.wasm is already up to date."
+          fi
